@@ -254,7 +254,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &596902943
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1561,7 +1561,7 @@ MonoBehaviour:
     RightModel: {fileID: 1562694779}
     IsRightToBeSpawned: 0
     IsEnabled: 1
-    CanDuplicate: 1
+    CanDuplicate: 0
   - GroupName: Physics_Hands
     _handModelManager: {fileID: 0}
     LeftModel: {fileID: 795409495}
@@ -1569,7 +1569,7 @@ MonoBehaviour:
     RightModel: {fileID: 867040963}
     IsRightToBeSpawned: 0
     IsEnabled: 1
-    CanDuplicate: 1
+    CanDuplicate: 0
 --- !u!1001 &1367067090
 Prefab:
   m_ObjectHideFlags: 0

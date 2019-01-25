@@ -7,6 +7,7 @@ using Leap.Unity;
 public class VisualizeIndexThumbConnection : MonoBehaviour
 {
     public GameObject laserPrefab; // The laser prefab
+
     private GameObject laser; // A reference to the spawned laser
     private HandModel handModel;
 
@@ -25,9 +26,20 @@ public class VisualizeIndexThumbConnection : MonoBehaviour
         ShowLaser(index.GetTipPosition(), thumb.GetTipPosition());
     }
 
-    void OnDestroy()
+    private void OnDisable()
     {
-        Destroy(laser);
+        if (laser)
+        {
+            laser.SetActive(false);
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (laser)
+        {
+            laser.SetActive(true);
+        }
     }
 
     private void ShowLaser(Vector3 origin, Vector3 destination)
