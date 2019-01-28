@@ -9,8 +9,8 @@ public class ExampleUseof_MeshCut : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, transform.forward, out hit))
+            RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
+            foreach (RaycastHit hit in hits)
             {
                 GameObject victim = hit.collider.gameObject;
                 GameObject[] pieces = BLINDED_AM_ME.MeshCut.Cut(victim, transform.position, transform.right, capMaterial);
@@ -20,7 +20,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.cyan;
 
         Gizmos.DrawLine(transform.position, transform.position + transform.forward * 5.0f);
         Gizmos.DrawLine(transform.position + transform.up * 0.5f, transform.position + transform.up * 0.5f + transform.forward * 5.0f);
