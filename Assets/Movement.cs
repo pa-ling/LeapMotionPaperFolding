@@ -2,38 +2,56 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Movement : MonoBehaviour {
+public class Movement : MonoBehaviour
+{
 
-    public float speed = 100;
+    public float rotatingSpeed = 50;
+    public float movingSpeed = 0.5f;
+    public float minDistanceToZero = 0.1f;
 
     private const float MAX_VERTICAL_ROTATION = 90;
-    private float verticalRotation = -10;
+    private float verticalRotation = 10;
 
-	// Use this for initialization
-	void Start () {
-        transform.RotateAround(Vector3.zero, Vector3.left, -10);
+    void Start()
+    {
+        transform.RotateAround(Vector3.zero, transform.right, 10);
     }
-	
-	// Update is called once per frame
-	void Update () {
-        float horizontal = -(Input.GetAxis("Horizontal") * speed * Time.deltaTime);
-        float vertical = -(Input.GetAxis("Vertical") * speed * Time.deltaTime);
 
-        transform.RotateAround(Vector3.zero, Vector3.up, horizontal);
+    void Update()
+    {
+        float rotatingRange = rotatingSpeed * Time.deltaTime;
+        float movingRange = movingSpeed * Time.deltaTime;
 
-        if (Input.GetButton("Jump"))
+        if ((Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) && Vector3.Distance(transform.position, Vector3.zero) > minDistanceToZero)
         {
-            //TODO: Fix
-            transform.position += transform.forward * vertical;
-            return;
+            transform.position += transform.forward * movingRange;
         }
 
-        if (MAX_VERTICAL_ROTATION < Mathf.Abs(verticalRotation + vertical))
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
-            return;
+            transform.RotateAround(Vector3.zero, Vector3.up, rotatingRange);
         }
 
-        transform.RotateAround(Vector3.zero, -transform.right, vertical);
-        verticalRotation += vertical;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+        {
+            transform.position -= transform.forward * movingRange;
+        }
+
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+        {
+            transform.RotateAround(Vector3.zero, -Vector3.up, rotatingRange);
+        }
+
+        if (Input.GetKey(KeyCode.Space) && MAX_VERTICAL_ROTATION > verticalRotation + rotatingRange)
+        {
+            transform.RotateAround(Vector3.zero, transform.right, rotatingRange);
+            verticalRotation += rotatingRange;
+        }
+
+        if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && -MAX_VERTICAL_ROTATION < verticalRotation - rotatingRange)
+        {
+            transform.RotateAround(Vector3.zero, -transform.right, rotatingRange);
+            verticalRotation -= rotatingRange;
+        }
     }
 }
