@@ -12,7 +12,6 @@ public class ExampleUseof_MeshCut : MonoBehaviour
             RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
             foreach (RaycastHit hit in hits)
             {
-                Debug.Log("Hit");
                 GameObject victim = hit.collider.gameObject;
                 GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, capMaterial);
             }
