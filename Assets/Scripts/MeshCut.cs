@@ -32,24 +32,21 @@ public class MeshCut
     private static MeshMaker _rightSide = new MeshMaker();
 
     private static Plane _blade;
-    private static Mesh _victim_mesh;
 
     // capping stuff
     private static List<Vector3> _new_vertices = new List<Vector3>();
-
     private static int _capMatSub = 1;
 
     /// <summary>
-    /// Cut the specified victim
+    /// Cut the specified victim.
     /// </summary>
     public static GameObject[] Cut(GameObject victim, Vector3 anchorPoint, Vector3 normalDirection, Material capMaterial)
     {
         // set the blade relative to victim
-        _blade = new Plane(victim.transform.InverseTransformDirection(-normalDirection),
-            victim.transform.InverseTransformPoint(anchorPoint));
+        _blade = new Plane(normalDirection, anchorPoint);
 
         // get the victims mesh
-        _victim_mesh = victim.GetComponent<MeshFilter>().mesh;
+        Mesh _victim_mesh = victim.GetComponent<MeshFilter>().mesh;
 
         // reset values
         _new_vertices.Clear();
@@ -61,7 +58,7 @@ public class MeshCut
         int[] indices;
         int p1, p2, p3;
 
-        // go throught the submeshes
+        // go through the submeshes
         for (int sub = 0; sub < _victim_mesh.subMeshCount; sub++)
         {
             indices = _victim_mesh.GetTriangles(sub);
@@ -79,10 +76,8 @@ public class MeshCut
                 // whole triangle
                 if (sides[0] == sides[1] && sides[0] == sides[2])
                 {
-
                     if (sides[0])
-                    { // left side
-
+                    {
                         _leftSide.AddTriangle(
                             new Vector3[] { _victim_mesh.vertices[p1], _victim_mesh.vertices[p2], _victim_mesh.vertices[p3] },
                             new Vector3[] { _victim_mesh.normals[p1], _victim_mesh.normals[p2], _victim_mesh.normals[p3] },
@@ -92,7 +87,6 @@ public class MeshCut
                     }
                     else
                     {
-
                         _rightSide.AddTriangle(
                             new Vector3[] { _victim_mesh.vertices[p1], _victim_mesh.vertices[p2], _victim_mesh.vertices[p3] },
                             new Vector3[] { _victim_mesh.normals[p1], _victim_mesh.normals[p2], _victim_mesh.normals[p3] },
@@ -100,11 +94,9 @@ public class MeshCut
                             new Vector4[] { _victim_mesh.tangents[p1], _victim_mesh.tangents[p2], _victim_mesh.tangents[p3] },
                             sub);
                     }
-
                 }
                 else
                 { // cut the triangle
-
                     Cut_this_Face(
                         new Vector3[] { _victim_mesh.vertices[p1], _victim_mesh.vertices[p2], _victim_mesh.vertices[p3] },
                         new Vector3[] { _victim_mesh.normals[p1], _victim_mesh.normals[p2], _victim_mesh.normals[p3] },
@@ -138,12 +130,12 @@ public class MeshCut
         right_HalfMesh.name = "Split Mesh Right";
 
         // assign the game objects
-        GameObject leftSideObj = new GameObject("left side", typeof(MeshFilter), typeof(MeshRenderer));
+        GameObject leftSideObj = new GameObject("left side", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
         leftSideObj.transform.position = victim.transform.position;
         leftSideObj.transform.rotation = victim.transform.rotation;
         leftSideObj.GetComponent<MeshFilter>().mesh = left_HalfMesh;
 
-        GameObject rightSideObj = new GameObject("right side", typeof(MeshFilter), typeof(MeshRenderer));
+        GameObject rightSideObj = new GameObject("right side", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
         rightSideObj.transform.position = victim.transform.position;
         rightSideObj.transform.rotation = victim.transform.rotation;
         rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
@@ -160,10 +152,6 @@ public class MeshCut
         // assign mats
         leftSideObj.GetComponent<MeshRenderer>().materials = mats;
         rightSideObj.GetComponent<MeshRenderer>().materials = mats;
-
-        // assign collider 
-        leftSideObj.AddComponent<MeshCollider>();
-        rightSideObj.AddComponent<MeshCollider>();
 
         // delete old object
         Object.Destroy(victim);
@@ -214,16 +202,13 @@ public class MeshCut
                     leftNormals[1] = leftNormals[0];
                     leftTangents[0] = tangents[i];
                     leftTangents[1] = leftTangents[0];
-
                 }
                 else
                 {
-
                     leftPoints[1] = vertices[i];
                     leftUvs[1] = uvs[i];
                     leftNormals[1] = normals[i];
                     leftTangents[1] = tangents[i];
-
                 }
             }
             else
@@ -287,7 +272,6 @@ public class MeshCut
 
         if (final_verts[0] != final_verts[1] && final_verts[0] != final_verts[2])
         {
-
             if (Vector3.Dot(Vector3.Cross(final_verts[1] - final_verts[0], final_verts[2] - final_verts[0]), final_norms[0]) < 0)
             {
                 FlipFace(final_verts, final_norms, final_uvs, final_tangents);
@@ -304,7 +288,6 @@ public class MeshCut
 
         if (final_verts[0] != final_verts[1] && final_verts[0] != final_verts[2])
         {
-
             if (Vector3.Dot(Vector3.Cross(final_verts[1] - final_verts[0], final_verts[2] - final_verts[0]), final_norms[0]) < 0)
             {
                 FlipFace(final_verts, final_norms, final_uvs, final_tangents);
@@ -321,7 +304,6 @@ public class MeshCut
 
         if (final_verts[0] != final_verts[1] && final_verts[0] != final_verts[2])
         {
-
             if (Vector3.Dot(Vector3.Cross(final_verts[1] - final_verts[0], final_verts[2] - final_verts[0]), final_norms[0]) < 0)
             {
                 FlipFace(final_verts, final_norms, final_uvs, final_tangents);
@@ -370,36 +352,29 @@ public class MeshCut
         tangents[0] = temp3;
     }
 
-    private static List<Vector3> capVertTracker = new List<Vector3>();
-    private static List<Vector3> capVertpolygon = new List<Vector3>();
-
     static void Capping()
     {
-        capVertTracker.Clear();
-
+        List<Vector3> capVertTracker = new List<Vector3>();
+        
         for (int i = 0; i < _new_vertices.Count; i++)
         {
             if (!capVertTracker.Contains(_new_vertices[i]))
             {
-                capVertpolygon.Clear();
+                List<Vector3> capVertpolygon = new List<Vector3>();
                 capVertpolygon.Add(_new_vertices[i]);
                 capVertpolygon.Add(_new_vertices[i + 1]);
 
                 capVertTracker.Add(_new_vertices[i]);
                 capVertTracker.Add(_new_vertices[i + 1]);
 
-
                 bool isDone = false;
                 while (!isDone)
                 {
                     isDone = true;
-
                     for (int k = 0; k < _new_vertices.Count; k += 2)
                     { // go through the pairs
-
                         if (_new_vertices[k] == capVertpolygon[capVertpolygon.Count - 1] && !capVertTracker.Contains(_new_vertices[k + 1]))
                         { // if so add the other
-
                             isDone = false;
                             capVertpolygon.Add(_new_vertices[k + 1]);
                             capVertTracker.Add(_new_vertices[k + 1]);
@@ -407,7 +382,6 @@ public class MeshCut
                         }
                         else if (_new_vertices[k + 1] == capVertpolygon[capVertpolygon.Count - 1] && !capVertTracker.Contains(_new_vertices[k]))
                         {// if so add the other
-
                             isDone = false;
                             capVertpolygon.Add(_new_vertices[k]);
                             capVertTracker.Add(_new_vertices[k]);
@@ -449,13 +423,11 @@ public class MeshCut
             newUV1 = Vector3.zero;
             newUV1.x = 0.5f + Vector3.Dot(displacement, left);
             newUV1.y = 0.5f + Vector3.Dot(displacement, upward);
-            //newUV1.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
 
             displacement = vertices[(i + 1) % vertices.Count] - center;
             newUV2 = Vector3.zero;
             newUV2.x = 0.5f + Vector3.Dot(displacement, left);
             newUV2.y = 0.5f + Vector3.Dot(displacement, upward);
-            //newUV2.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
 
             Vector3[] final_verts = new Vector3[] { vertices[i], vertices[(i + 1) % vertices.Count], center };
             Vector3[] final_norms = new Vector3[] { -_blade.normal, -_blade.normal, -_blade.normal };
