@@ -9,6 +9,7 @@ public class BladeMovement : MonoBehaviour {
 
     private GameObject leftLaser;
     private GameObject rightLaser;
+    private GameObject connectionLaser;
 
     public void HandEnabled(int hand)
     {

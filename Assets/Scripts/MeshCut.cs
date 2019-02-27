@@ -26,7 +26,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-
 public class MeshCut
 {
     private static MeshMaker _leftSide = new MeshMaker();
@@ -139,10 +138,10 @@ public class MeshCut
         right_HalfMesh.name = "Split Mesh Right";
 
         // assign the game objects
-        victim.name = "left side";
-        victim.GetComponent<MeshFilter>().mesh = left_HalfMesh;
-
-        GameObject leftSideObj = victim;
+        GameObject leftSideObj = new GameObject("left side", typeof(MeshFilter), typeof(MeshRenderer));
+        leftSideObj.transform.position = victim.transform.position;
+        leftSideObj.transform.rotation = victim.transform.rotation;
+        leftSideObj.GetComponent<MeshFilter>().mesh = left_HalfMesh;
 
         GameObject rightSideObj = new GameObject("right side", typeof(MeshFilter), typeof(MeshRenderer));
         rightSideObj.transform.position = victim.transform.position;
@@ -151,14 +150,23 @@ public class MeshCut
 
         if (victim.transform.parent != null)
         {
+            leftSideObj.transform.parent = victim.transform.parent;
             rightSideObj.transform.parent = victim.transform.parent;
         }
 
+        leftSideObj.transform.localScale = victim.transform.localScale;
         rightSideObj.transform.localScale = victim.transform.localScale;
 
         // assign mats
         leftSideObj.GetComponent<MeshRenderer>().materials = mats;
         rightSideObj.GetComponent<MeshRenderer>().materials = mats;
+
+        // assign collider 
+        leftSideObj.AddComponent<MeshCollider>();
+        rightSideObj.AddComponent<MeshCollider>();
+
+        // delete old object
+        Object.Destroy(victim);
 
         return new GameObject[] { leftSideObj, rightSideObj };
     }
