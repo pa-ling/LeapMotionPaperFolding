@@ -97,7 +97,7 @@ public class MeshCut
                 }
                 else
                 { // cut the triangle
-                    Cut_this_Face(
+                    CutThisFace(
                         new Vector3[] { _victim_mesh.vertices[p1], _victim_mesh.vertices[p2], _victim_mesh.vertices[p3] },
                         new Vector3[] { _victim_mesh.normals[p1], _victim_mesh.normals[p2], _victim_mesh.normals[p3] },
                         new Vector2[] { _victim_mesh.uv[p1], _victim_mesh.uv[p2], _victim_mesh.uv[p3] },
@@ -162,7 +162,7 @@ public class MeshCut
     /// <summary>
     ///  I have no idea how I made this work
     /// </summary>
-    private static void Cut_this_Face(
+    private static void CutThisFace(
         Vector3[] vertices,
         Vector3[] normals,
         Vector2[] uvs,
@@ -178,6 +178,7 @@ public class MeshCut
         Vector3[] leftNormals = new Vector3[2];
         Vector2[] leftUvs = new Vector2[2];
         Vector4[] leftTangents = new Vector4[2];
+
         Vector3[] rightPoints = new Vector3[2];
         Vector3[] rightNormals = new Vector3[2];
         Vector2[] rightUvs = new Vector2[2];
@@ -239,6 +240,7 @@ public class MeshCut
 
         float normalizedDistance = 0.0f;
         float distance = 0;
+
         _blade.Raycast(new Ray(leftPoints[0], (rightPoints[0] - leftPoints[0]).normalized), out distance);
 
         normalizedDistance = distance / (rightPoints[0] - leftPoints[0]).magnitude;
@@ -259,73 +261,59 @@ public class MeshCut
 
         _new_vertices.Add(newVertex2);
 
-        Vector3[] final_verts;
-        Vector3[] final_norms;
-        Vector2[] final_uvs;
-        Vector4[] final_tangents;
-
         // first triangle
-        final_verts = new Vector3[] { leftPoints[0], newVertex1, newVertex2 };
-        final_norms = new Vector3[] { leftNormals[0], newNormal1, newNormal2 };
-        final_uvs = new Vector2[] { leftUvs[0], newUv1, newUv2 };
-        final_tangents = new Vector4[] { leftTangents[0], newTangent1, newTangent2 };
-
-        if (final_verts[0] != final_verts[1] && final_verts[0] != final_verts[2])
-        {
-            if (Vector3.Dot(Vector3.Cross(final_verts[1] - final_verts[0], final_verts[2] - final_verts[0]), final_norms[0]) < 0)
-            {
-                FlipFace(final_verts, final_norms, final_uvs, final_tangents);
-            }
-
-            _leftSide.AddTriangle(final_verts, final_norms, final_uvs, final_tangents, submesh);
-        }
+        HandleTriangle(
+            new Vector3[] { leftPoints[0], newVertex1, newVertex2 }, 
+            new Vector3[] { leftNormals[0], newNormal1, newNormal2 },
+            new Vector2[] { leftUvs[0], newUv1, newUv2 },
+            new Vector4[] { leftTangents[0], newTangent1, newTangent2 },
+            _leftSide,
+            submesh);
 
         // second triangle
-        final_verts = new Vector3[] { leftPoints[0], leftPoints[1], newVertex2 };
-        final_norms = new Vector3[] { leftNormals[0], leftNormals[1], newNormal2 };
-        final_uvs = new Vector2[] { leftUvs[0], leftUvs[1], newUv2 };
-        final_tangents = new Vector4[] { leftTangents[0], leftTangents[1], newTangent2 };
-
-        if (final_verts[0] != final_verts[1] && final_verts[0] != final_verts[2])
-        {
-            if (Vector3.Dot(Vector3.Cross(final_verts[1] - final_verts[0], final_verts[2] - final_verts[0]), final_norms[0]) < 0)
-            {
-                FlipFace(final_verts, final_norms, final_uvs, final_tangents);
-            }
-
-            _leftSide.AddTriangle(final_verts, final_norms, final_uvs, final_tangents, submesh);
-        }
+        HandleTriangle(
+            new Vector3[] { leftPoints[0], leftPoints[1], newVertex2 },
+            new Vector3[] { leftNormals[0], leftNormals[1], newNormal2 },
+            new Vector2[] { leftUvs[0], leftUvs[1], newUv2 },
+            new Vector4[] { leftTangents[0], leftTangents[1], newTangent2 },
+            _leftSide,
+            submesh);
 
         // third triangle
-        final_verts = new Vector3[] { rightPoints[0], newVertex1, newVertex2 };
-        final_norms = new Vector3[] { rightNormals[0], newNormal1, newNormal2 };
-        final_uvs = new Vector2[] { rightUvs[0], newUv1, newUv2 };
-        final_tangents = new Vector4[] { rightTangents[0], newTangent1, newTangent2 };
-
-        if (final_verts[0] != final_verts[1] && final_verts[0] != final_verts[2])
-        {
-            if (Vector3.Dot(Vector3.Cross(final_verts[1] - final_verts[0], final_verts[2] - final_verts[0]), final_norms[0]) < 0)
-            {
-                FlipFace(final_verts, final_norms, final_uvs, final_tangents);
-            }
-
-            _rightSide.AddTriangle(final_verts, final_norms, final_uvs, final_tangents, submesh);
-        }
+        HandleTriangle(
+            new Vector3[] { rightPoints[0], newVertex1, newVertex2 },
+            new Vector3[] { rightNormals[0], newNormal1, newNormal2 },
+            new Vector2[] { rightUvs[0], newUv1, newUv2 },
+            new Vector4[] { rightTangents[0], newTangent1, newTangent2 },
+            _rightSide,
+            submesh);
 
         // fourth triangle
-        final_verts = new Vector3[] { rightPoints[0], rightPoints[1], newVertex2 };
-        final_norms = new Vector3[] { rightNormals[0], rightNormals[1], newNormal2 };
-        final_uvs = new Vector2[] { rightUvs[0], rightUvs[1], newUv2 };
-        final_tangents = new Vector4[] { rightTangents[0], rightTangents[1], newTangent2 };
+        HandleTriangle(
+            new Vector3[] { rightPoints[0], rightPoints[1], newVertex2 },
+            new Vector3[] { rightNormals[0], rightNormals[1], newNormal2 },
+            new Vector2[] { rightUvs[0], rightUvs[1], newUv2 },
+            new Vector4[] { rightTangents[0], rightTangents[1], newTangent2 },
+            _rightSide,
+            submesh);
+    }
 
-        if (final_verts[0] != final_verts[1] && final_verts[0] != final_verts[2])
+    private static void HandleTriangle(
+        Vector3[] verts,
+        Vector3[] norms,
+        Vector2[] uvs,
+        Vector4[] tangents,
+        MeshMaker meshMaker,
+        int submesh)
+    {
+        if (verts[0] != verts[1] && verts[0] != verts[2])
         {
-            if (Vector3.Dot(Vector3.Cross(final_verts[1] - final_verts[0], final_verts[2] - final_verts[0]), final_norms[0]) < 0)
+            if (Vector3.Dot(Vector3.Cross(verts[1] - verts[0], verts[2] - verts[0]), norms[0]) < 0)
             {
-                FlipFace(final_verts, final_norms, final_uvs, final_tangents);
+                FlipFace(verts, norms, uvs, tangents);
             }
 
-            _rightSide.AddTriangle(final_verts, final_norms, final_uvs, final_tangents, submesh);
+            meshMaker.AddTriangle(verts, norms, uvs, tangents, submesh);
         }
     }
 
@@ -352,7 +340,7 @@ public class MeshCut
         tangents[0] = temp3;
     }
 
-    static void Capping()
+    private static void Capping()
     {
         List<Vector3> capVertTracker = new List<Vector3>();
         
@@ -394,7 +382,7 @@ public class MeshCut
         }   
     }
 
-    static void FillCap(List<Vector3> vertices)
+    private static void FillCap(List<Vector3> vertices)
     {
         // center of the cap
         Vector3 center = Vector3.zero;
