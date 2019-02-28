@@ -78,12 +78,13 @@ public class MeshMaker
     /// </summary>
     public Mesh GetMesh()
     {
-        Mesh mesh = new Mesh();
-        mesh.name = "Generated Mesh";
-        mesh.SetVertices(_vertices);
-        mesh.SetNormals(_normals);
-        mesh.SetUVs(0, _uvs);
-        mesh.SetUVs(1, _uvs);
+        Mesh mesh = new Mesh
+        {
+            vertices = _vertices.ToArray(),
+            normals = _normals.ToArray(),
+            uv = _uvs.ToArray(),
+            uv2 = _uvs.ToArray(),
+        };
 
         if (_tangents.Count > 1)
         {
