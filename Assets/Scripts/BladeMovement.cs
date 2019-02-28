@@ -6,10 +6,14 @@ public class BladeMovement : MonoBehaviour {
     public HandModel leftHandModel;
     public HandModel rightHandModel;
     public GameObject laserPrefab; // The laser prefab
+    public GameObject sphere;
 
     private GameObject leftLaser;
     private GameObject rightLaser;
     private GameObject connectionLaser;
+    private GameObject sphere1;
+    private GameObject sphere2;
+    private GameObject sphere3;
 
     public void HandEnabled(int hand)
     {
@@ -42,17 +46,29 @@ public class BladeMovement : MonoBehaviour {
 
         rightLaser = Instantiate(laserPrefab);
         rightLaser.SetActive(true);
+
+        sphere1 = Instantiate(sphere);
+        sphere2 = Instantiate(sphere);
+        sphere3 = Instantiate(sphere);
     }
 
     private void Update()
     {       
         FingerModel leftIndex = leftHandModel.fingers[1];
         FingerModel leftThumb = leftHandModel.fingers[0];
-        ShowLaser(leftLaser, leftIndex.GetTipPosition(), leftThumb.GetTipPosition());
 
-        FingerModel rightIndex = rightHandModel.fingers[1];
-        FingerModel rightThumb = rightHandModel.fingers[0];
-        ShowLaser(rightLaser, rightIndex.GetTipPosition(), rightThumb.GetTipPosition());
+        sphere1.transform.position = leftIndex.GetTipPosition();
+        sphere2.transform.position = leftThumb.GetTipPosition();
+
+        RaycastHit hit;
+        int layerMask = 1 << 2;
+        layerMask = ~layerMask;
+        if (Physics.Raycast(leftIndex.GetTipPosition(), leftThumb.GetTipPosition() - leftIndex.GetTipPosition(), out hit, Mathf.Infinity, layerMask))
+        {
+            sphere3.transform.position = hit.point;
+            ShowLaser(leftLaser, leftIndex.GetTipPosition(), hit.point);
+            Debug.Log(hit.collider.gameObject.name);
+        }
     }
 
     private void ShowLaser(GameObject laser, Vector3 origin, Vector3 destination)
