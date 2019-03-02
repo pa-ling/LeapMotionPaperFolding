@@ -113,12 +113,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &212261930 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 114952030772254106, guid: 0fad8309280324ca89b532f6281e9f07,
-    type: 2}
-  m_PrefabInternal: {fileID: 2016500192}
-  m_Script: {fileID: 11500000, guid: bbf13d1b78bdb7349939555830a2a399, type: 3}
 --- !u!1001 &320940790
 Prefab:
   m_ObjectHideFlags: 0
@@ -1062,24 +1056,6 @@ Prefab:
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c8515ebee271c0649b9db1321f3026a4, type: 2}
   m_IsPrefabAsset: 0
---- !u!1 &683370778 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1404367628755344, guid: 2276723046d707c4f94d431ceb80ab92,
-    type: 2}
-  m_PrefabInternal: {fileID: 957662478}
---- !u!114 &683370779
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 683370778}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb19a6e7fa84af4a8678b8a14a9e33e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bladeMovement: {fileID: 212261930}
-  handId: 1
 --- !u!4 &688645112 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 432918, guid: b9c7aaf0d314cb847a3b2a20e893f1b6,
@@ -1148,7 +1124,7 @@ Prefab:
     - target: {fileID: 23465383988848842, guid: fcb046f11111d3845a7f61feae59bf61,
         type: 2}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fcb046f11111d3845a7f61feae59bf61, type: 2}
@@ -3510,11 +3486,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1978883355 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1137685427885016, guid: 2aa010a1e75292e49a24f3f71bb9cddb,
-    type: 2}
-  m_PrefabInternal: {fileID: 1587281113}
 --- !u!114 &1978883356 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 114994683550464134, guid: 2aa010a1e75292e49a24f3f71bb9cddb,
@@ -3526,19 +3497,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4542260197562760, guid: 2aa010a1e75292e49a24f3f71bb9cddb,
     type: 2}
   m_PrefabInternal: {fileID: 1587281113}
---- !u!114 &1978883358
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1978883355}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb19a6e7fa84af4a8678b8a14a9e33e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bladeMovement: {fileID: 212261930}
-  handId: 0
 --- !u!1001 &2016500192
 Prefab:
   m_ObjectHideFlags: 0
@@ -3588,12 +3546,6 @@ Prefab:
       propertyPath: rightHandModel
       value: 
       objectReference: {fileID: 1562694779}
-    - target: {fileID: 114952030772254106, guid: 0fad8309280324ca89b532f6281e9f07,
-        type: 2}
-      propertyPath: sphere
-      value: 
-      objectReference: {fileID: 1619930419461808, guid: bc50cb4358969c9478c842d4f37dee81,
-        type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0fad8309280324ca89b532f6281e9f07, type: 2}
   m_IsPrefabAsset: 0

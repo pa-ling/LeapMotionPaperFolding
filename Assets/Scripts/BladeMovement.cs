@@ -1,74 +1,69 @@
 ﻿using UnityEngine;
 using Leap.Unity;
+using System.Collections.Generic;
 
 public class BladeMovement : MonoBehaviour {
 
+    private enum HandObject { LASER, MARKER };
+
+    public GameObject laserPrefab;
+    public GameObject markerPrefab;
     public HandModel leftHandModel;
     public HandModel rightHandModel;
-    public GameObject laserPrefab; // The laser prefab
-    public GameObject sphere;
 
-    private GameObject leftLaser;
-    private GameObject rightLaser;
+    private List<GameObject>[] handObjects;
     private GameObject connectionLaser;
-    private GameObject sphere1;
-    private GameObject sphere2;
-    private GameObject sphere3;
 
-    public void HandEnabled(int hand)
-    {
-        if (hand == 0)
-        {
-            leftLaser.SetActive(true);
-        }
-        else
-        {
-            rightLaser.SetActive(true);
-        }
-    }
-
-    public void HandDisabled(int hand)
-    {
-        if (hand == 0)
-        {
-            leftLaser.SetActive(false);
-        }
-        else
-        {
-            rightLaser.SetActive(false);
-        }
-    }
+    private const int PAPER_LAYER_MASK = ~(1 << 2);
 
     private void Start()
     {
-        leftLaser = Instantiate(laserPrefab);
-        leftLaser.SetActive(true);
+        List<GameObject> leftObjects;
+        leftObjects = new List<GameObject>();
+        leftObjects.Add(Instantiate(laserPrefab));
+        leftObjects.Add(Instantiate(markerPrefab));
 
-        rightLaser = Instantiate(laserPrefab);
-        rightLaser.SetActive(true);
+        List<GameObject> rightObjects;
+        rightObjects = new List<GameObject>();
+        rightObjects.Add(Instantiate(laserPrefab));
+        rightObjects.Add(Instantiate(markerPrefab));
 
-        sphere1 = Instantiate(sphere);
-        sphere2 = Instantiate(sphere);
-        sphere3 = Instantiate(sphere);
+        handObjects = new List<GameObject>[2];
+        handObjects[0] = leftObjects;
+        handObjects[1] = rightObjects;
+
+        connectionLaser = Instantiate(laserPrefab);
+        connectionLaser.SetActive(false);
     }
 
     private void Update()
-    {       
-        FingerModel leftIndex = leftHandModel.fingers[1];
-        FingerModel leftThumb = leftHandModel.fingers[0];
+    {
+        Vector3 leftHit = GetAndVisualizePaperHit(leftHandModel.fingers[1].GetTipPosition(), leftHandModel.fingers[0].GetTipPosition(), 0);
+        Vector3 rightHit = GetAndVisualizePaperHit(rightHandModel.fingers[1].GetTipPosition(), rightHandModel.fingers[0].GetTipPosition(), 1);
 
-        sphere1.transform.position = leftIndex.GetTipPosition();
-        sphere2.transform.position = leftThumb.GetTipPosition();
+        //TODO: Make connection Laser
+        //TODO: Move blade accordingly
+    }
 
+    private Vector3 GetAndVisualizePaperHit(Vector3 indexTipPos, Vector3 thumbTipPos, int hand)
+    {
         RaycastHit hit;
-        int layerMask = 1 << 2;
-        layerMask = ~layerMask;
-        if (Physics.Raycast(leftIndex.GetTipPosition(), leftThumb.GetTipPosition() - leftIndex.GetTipPosition(), out hit, Mathf.Infinity, layerMask))
+        float distance = Vector3.Distance(indexTipPos, thumbTipPos);
+
+        if (Physics.Raycast(indexTipPos, thumbTipPos - indexTipPos, out hit, distance, PAPER_LAYER_MASK))
         {
-            sphere3.transform.position = hit.point;
-            ShowLaser(leftLaser, leftIndex.GetTipPosition(), hit.point);
-            Debug.Log(hit.collider.gameObject.name);
+            handObjects[hand][(int)HandObject.LASER].SetActive(true);
+            handObjects[hand][(int)HandObject.MARKER].SetActive(true);
+            handObjects[hand][(int)HandObject.MARKER].transform.position = hit.point;
+            ShowLaser(handObjects[hand][(int)HandObject.LASER], indexTipPos, thumbTipPos);
         }
+        else
+        {
+            handObjects[hand][(int)HandObject.MARKER].SetActive(false);
+            handObjects[hand][(int)HandObject.LASER].SetActive(false);
+        }
+
+        return hit.point;
     }
 
     private void ShowLaser(GameObject laser, Vector3 origin, Vector3 destination)

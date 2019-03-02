@@ -137,7 +137,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbf13d1b78bdb7349939555830a2a399, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leftHandModel: {fileID: 0}
-  rightHandModel: {fileID: 0}
   laserPrefab: {fileID: 1338862414193942, guid: c8cd608e08213f84eb84aeae9d087af9,
     type: 2}
+  markerPrefab: {fileID: 1619930419461808, guid: bc50cb4358969c9478c842d4f37dee81,
+    type: 2}
+  leftHandModel: {fileID: 0}
+  rightHandModel: {fileID: 0}
