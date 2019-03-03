@@ -6,11 +6,11 @@ public class BladeMovement : MonoBehaviour {
 
     private enum HandObject { LASER, MARKER };
 
-    public GameObject blade;
     public GameObject laserPrefab;
     public GameObject markerPrefab;
     public HandModel leftHandModel;
     public HandModel rightHandModel;
+    public PinchDetector leftDetector;
 
     private List<GameObject>[] handObjects;
     private GameObject connectionLaser;
@@ -52,17 +52,25 @@ public class BladeMovement : MonoBehaviour {
             return;
         }
 
-        //Debug.Log("Left: " + leftHit + ", Right: " + rightHit);
-
         connectionLaser.SetActive(true);
         ShowLaser(connectionLaser, leftHit, rightHit);
         verticalLaser.SetActive(true);
         ShowLaser(verticalLaser, leftHit, rightHit);
         verticalLaser.transform.Rotate(new Vector3(0, 90, 0));
 
-        blade.transform.position = verticalLaser.transform.position + new Vector3(0, 1, 0);
-        blade.transform.rotation = verticalLaser.transform.rotation;
-        blade.transform.Rotate(new Vector3(0, -90, 0));
+        transform.position = verticalLaser.transform.position + new Vector3(0, 1, 0);
+        transform.rotation = verticalLaser.transform.rotation;
+        transform.Rotate(new Vector3(90, 0, 0));
+
+        if (leftDetector.DidStartPinch)
+        {
+            RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
+            foreach (RaycastHit hit in hits)
+            {
+                GameObject victim = hit.collider.gameObject;
+                GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
+            }
+        }
     }
 
     private Vector3 GetAndVisualizePaperHit(Vector3 indexTipPos, Vector3 thumbTipPos, int hand)
@@ -92,5 +100,17 @@ public class BladeMovement : MonoBehaviour {
         laser.transform.position = Vector3.Lerp(origin, destination, .5f); // Move laser to the middle between the controller and the position the raycast hit
         laser.transform.LookAt(destination); // Rotate laser facing the hit point
         laser.transform.localScale = new Vector3(laser.transform.localScale.x, laser.transform.localScale.y, Vector3.Distance(origin, destination)); // Scale laser so it fits exactly between the controller & the hit point
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Vector3 gizmoStart = transform.position;
+        Vector3 arrowEnd = transform.position + 0.5f * transform.forward;
+        Vector3 arrowRight = arrowEnd - 0.25f * transform.forward + 0.25f * transform.up;
+        Vector3 arrowLeft = arrowEnd - 0.25f * transform.forward - 0.25f * transform.up;
+
+        Gizmos.DrawLine(gizmoStart, arrowEnd);
+        Gizmos.DrawLine(arrowEnd, arrowLeft);
+        Gizmos.DrawLine(arrowEnd, arrowRight);
     }
 }
