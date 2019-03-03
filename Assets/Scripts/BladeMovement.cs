@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using Leap.Unity;
 using System.Collections.Generic;
+using System.Collections;
 
 public class BladeMovement : MonoBehaviour {
 
@@ -67,6 +68,7 @@ public class BladeMovement : MonoBehaviour {
         // when both hands pinch, the victim is cut
         if ((leftDetector.DidStartPinch && rightDetector.IsPinching) || (leftDetector.IsPinching && rightDetector.DidStartPinch))
         {
+            StartCoroutine("Blink", verticalLaser.GetComponent<MeshRenderer>());
             RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
             foreach (RaycastHit hit in hits)
             {
@@ -115,6 +117,14 @@ public class BladeMovement : MonoBehaviour {
         laser.transform.position = Vector3.Lerp(origin, destination, .5f); // Move laser to the middle between the controller and the position the raycast hit
         laser.transform.LookAt(destination); // Rotate laser facing the hit point
         laser.transform.localScale = new Vector3(laser.transform.localScale.x, laser.transform.localScale.y, Vector3.Distance(origin, destination)); // Scale laser so it fits exactly between the controller & the hit point
+    }
+
+    IEnumerator Blink(MeshRenderer renderer)
+    {
+        Color defaultColor = renderer.material.color;
+        renderer.material.color = Color.green;
+        yield return new WaitForSeconds(1);
+        renderer.material.color = defaultColor;
     }
 
     void OnDrawGizmosSelected()
