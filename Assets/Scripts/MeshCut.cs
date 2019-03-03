@@ -134,11 +134,13 @@ public class MeshCut
         leftSideObj.transform.position = victim.transform.position;
         leftSideObj.transform.rotation = victim.transform.rotation;
         leftSideObj.GetComponent<MeshFilter>().mesh = left_HalfMesh;
+        leftSideObj.GetComponent<MeshCollider>().sharedMesh = left_HalfMesh;
 
         GameObject rightSideObj = new GameObject("right side", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
         rightSideObj.transform.position = victim.transform.position;
         rightSideObj.transform.rotation = victim.transform.rotation;
         rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
+        rightSideObj.GetComponent<MeshCollider>().sharedMesh = right_HalfMesh;
 
         if (victim.transform.parent != null)
         {
