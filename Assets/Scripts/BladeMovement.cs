@@ -4,13 +4,15 @@ using System.Collections.Generic;
 
 public class BladeMovement : MonoBehaviour {
 
+    private enum Hand { LEFT, RIGHT };
     private enum HandObject { LASER, MARKER };
 
     public GameObject laserPrefab;
     public GameObject markerPrefab;
     public HandModel leftHandModel;
-    public HandModel rightHandModel;
     public PinchDetector leftDetector;
+    public HandModel rightHandModel;
+    public PinchDetector rightDetector;
 
     private List<GameObject>[] handObjects;
     private GameObject connectionLaser;
@@ -42,8 +44,8 @@ public class BladeMovement : MonoBehaviour {
 
     private void Update()
     {
-        Vector3 leftHit = GetAndVisualizePaperHit(leftHandModel.fingers[1].GetTipPosition(), leftHandModel.fingers[0].GetTipPosition(), 0);
-        Vector3 rightHit = GetAndVisualizePaperHit(rightHandModel.fingers[1].GetTipPosition(), rightHandModel.fingers[0].GetTipPosition(), 1);
+        Vector3 leftHit = GetAndVisualizePaperHit(leftHandModel.fingers[1].GetTipPosition(), leftHandModel.fingers[0].GetTipPosition(), Hand.LEFT, leftDetector);
+        Vector3 rightHit = GetAndVisualizePaperHit(rightHandModel.fingers[1].GetTipPosition(), rightHandModel.fingers[0].GetTipPosition(), Hand.RIGHT, rightDetector);
 
         if (Vector3.negativeInfinity.Equals(leftHit) || Vector3.negativeInfinity.Equals(rightHit))
         {
@@ -62,7 +64,8 @@ public class BladeMovement : MonoBehaviour {
         transform.rotation = verticalLaser.transform.rotation;
         transform.Rotate(new Vector3(90, 0, 0));
 
-        if (leftDetector.DidStartPinch)
+        // when both hands pinch, the victim is cut
+        if ((leftDetector.DidStartPinch && rightDetector.IsPinching) || (leftDetector.IsPinching && rightDetector.DidStartPinch))
         {
             RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
             foreach (RaycastHit hit in hits)
@@ -73,22 +76,34 @@ public class BladeMovement : MonoBehaviour {
         }
     }
 
-    private Vector3 GetAndVisualizePaperHit(Vector3 indexTipPos, Vector3 thumbTipPos, int hand)
+    private Vector3 GetAndVisualizePaperHit(Vector3 indexTipPos, Vector3 thumbTipPos, Hand hand, PinchDetector pinchDetector)
     {
         RaycastHit hit;
         float distance = Vector3.Distance(indexTipPos, thumbTipPos);
 
         if (Physics.Raycast(indexTipPos, thumbTipPos - indexTipPos, out hit, distance, PAPER_LAYER_MASK))
         {
-            handObjects[hand][(int)HandObject.LASER].SetActive(true);
-            handObjects[hand][(int)HandObject.MARKER].SetActive(true);
-            handObjects[hand][(int)HandObject.MARKER].transform.position = hit.point;
-            ShowLaser(handObjects[hand][(int)HandObject.LASER], indexTipPos, thumbTipPos);
+            GameObject laser = handObjects[(int)hand][(int)HandObject.LASER];
+            GameObject marker = handObjects[(int)hand][(int)HandObject.MARKER];
+
+            if (pinchDetector.IsPinching)
+            {
+                laser.GetComponent<MeshRenderer>().material.color = Color.green;
+                marker.GetComponent<MeshRenderer>().material.color = Color.green;
+            } else
+            {
+                laser.GetComponent<MeshRenderer>().material.color = Color.blue;
+                marker.GetComponent<MeshRenderer>().material.color = Color.blue;
+            }
+            laser.SetActive(true);
+            marker.SetActive(true);
+            marker.transform.position = hit.point;
+            ShowLaser(laser, indexTipPos, thumbTipPos);
         }
         else
         {
-            handObjects[hand][(int)HandObject.MARKER].SetActive(false);
-            handObjects[hand][(int)HandObject.LASER].SetActive(false);
+            handObjects[(int)hand][(int)HandObject.MARKER].SetActive(false);
+            handObjects[(int)hand][(int)HandObject.LASER].SetActive(false);
             return Vector3.negativeInfinity;
         }
 
