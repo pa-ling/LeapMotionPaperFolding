@@ -6,6 +6,7 @@ public class BladeMovement : MonoBehaviour {
 
     private enum HandObject { LASER, MARKER };
 
+    public GameObject blade;
     public GameObject laserPrefab;
     public GameObject markerPrefab;
     public HandModel leftHandModel;
@@ -13,6 +14,7 @@ public class BladeMovement : MonoBehaviour {
 
     private List<GameObject>[] handObjects;
     private GameObject connectionLaser;
+    private GameObject verticalLaser; // the laser that is vertical to connectionLaser
 
     private const int PAPER_LAYER_MASK = ~(1 << 2);
 
@@ -34,6 +36,8 @@ public class BladeMovement : MonoBehaviour {
 
         connectionLaser = Instantiate(laserPrefab);
         connectionLaser.SetActive(false);
+        verticalLaser = Instantiate(laserPrefab);
+        verticalLaser.SetActive(false);
     }
 
     private void Update()
@@ -41,8 +45,24 @@ public class BladeMovement : MonoBehaviour {
         Vector3 leftHit = GetAndVisualizePaperHit(leftHandModel.fingers[1].GetTipPosition(), leftHandModel.fingers[0].GetTipPosition(), 0);
         Vector3 rightHit = GetAndVisualizePaperHit(rightHandModel.fingers[1].GetTipPosition(), rightHandModel.fingers[0].GetTipPosition(), 1);
 
-        //TODO: Make connection Laser
-        //TODO: Move blade accordingly
+        if (Vector3.negativeInfinity.Equals(leftHit) || Vector3.negativeInfinity.Equals(rightHit))
+        {
+            connectionLaser.SetActive(false);
+            verticalLaser.SetActive(false);
+            return;
+        }
+
+        //Debug.Log("Left: " + leftHit + ", Right: " + rightHit);
+
+        connectionLaser.SetActive(true);
+        ShowLaser(connectionLaser, leftHit, rightHit);
+        verticalLaser.SetActive(true);
+        ShowLaser(verticalLaser, leftHit, rightHit);
+        verticalLaser.transform.Rotate(new Vector3(0, 90, 0));
+
+        blade.transform.position = verticalLaser.transform.position + new Vector3(0, 1, 0);
+        blade.transform.rotation = verticalLaser.transform.rotation;
+        blade.transform.Rotate(new Vector3(0, -90, 0));
     }
 
     private Vector3 GetAndVisualizePaperHit(Vector3 indexTipPos, Vector3 thumbTipPos, int hand)
@@ -61,6 +81,7 @@ public class BladeMovement : MonoBehaviour {
         {
             handObjects[hand][(int)HandObject.MARKER].SetActive(false);
             handObjects[hand][(int)HandObject.LASER].SetActive(false);
+            return Vector3.negativeInfinity;
         }
 
         return hit.point;
