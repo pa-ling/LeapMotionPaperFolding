@@ -74,6 +74,8 @@ public class BladeMovement : MonoBehaviour {
             {
                 GameObject victim = hit.collider.gameObject;
                 GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
+                pieces[0].transform.position += .0002f * transform.right;
+                pieces[1].transform.position -= .0002f * transform.right;
             }
         }
     }
