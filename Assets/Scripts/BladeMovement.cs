@@ -19,7 +19,7 @@ public class BladeMovement : MonoBehaviour {
     private GameObject connectionLaser;
     private GameObject verticalLaser; // the laser that is vertical to connectionLaser
 
-    private const int PAPER_LAYER_MASK = ~(1 << 2);
+    private const int PAPER_LAYER_MASK = 1 << 8;
 
     private void Start()
     {
