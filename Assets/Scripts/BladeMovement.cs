@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using Leap.Unity;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections;
+using UnityEngine;
+using Leap.Unity;
+using Leap.Unity.Interaction;
 
 public class BladeMovement : MonoBehaviour {
 
@@ -10,16 +11,21 @@ public class BladeMovement : MonoBehaviour {
 
     public GameObject laserPrefab;
     public GameObject markerPrefab;
+
     public HandModel leftHandModel;
     public PinchDetector leftDetector;
+
     public HandModel rightHandModel;
     public PinchDetector rightDetector;
+
+    public InteractionHand leftInteractionHand;
+    public InteractionHand rightInteractionHand;
 
     private List<GameObject>[] handObjects;
     private GameObject connectionLaser;
     private GameObject verticalLaser; // the laser that is vertical to connectionLaser
 
-    private const int PAPER_LAYER_MASK = 1 << 8;
+    private const int PAPER_LAYER_MASK = ~(1 << 2);
 
     private void Start()
     {
@@ -41,6 +47,10 @@ public class BladeMovement : MonoBehaviour {
         connectionLaser.SetActive(false);
         verticalLaser = Instantiate(laserPrefab);
         verticalLaser.SetActive(false);
+
+        leftInteractionHand.OnStayPrimaryHoveringObject += OnPaperPrimaryHover;
+        leftInteractionHand.OnGraspBegin += OnPaperGraspBegin;
+        leftInteractionHand.OnGraspEnd += OnPaperGraspEnd;
     }
 
     private void Update()
@@ -121,7 +131,7 @@ public class BladeMovement : MonoBehaviour {
         laser.transform.localScale = new Vector3(laser.transform.localScale.x, laser.transform.localScale.y, Vector3.Distance(origin, destination)); // Scale laser so it fits exactly between the controller & the hit point
     }
 
-    IEnumerator Blink(MeshRenderer renderer)
+    private IEnumerator Blink(MeshRenderer renderer)
     {
         Color defaultColor = renderer.material.color;
         renderer.material.color = Color.green;
@@ -129,7 +139,7 @@ public class BladeMovement : MonoBehaviour {
         renderer.material.color = defaultColor;
     }
 
-    void OnDrawGizmosSelected()
+    private void OnDrawGizmosSelected()
     {
         Vector3 gizmoStart = transform.position;
         Vector3 arrowEnd = transform.position + 0.5f * transform.forward;
@@ -140,4 +150,20 @@ public class BladeMovement : MonoBehaviour {
         Gizmos.DrawLine(arrowEnd, arrowLeft);
         Gizmos.DrawLine(arrowEnd, arrowRight);
     }
+
+    private void OnPaperPrimaryHover(InteractionBehaviour ib)
+    {
+        Debug.Log("Hover" + ib);
+    }
+
+    private void OnPaperGraspBegin()
+    {
+        Debug.Log("Grasp Begin");
+    }
+
+    private void OnPaperGraspEnd()
+    {
+        Debug.Log("Grasp End");
+    }
+
 }

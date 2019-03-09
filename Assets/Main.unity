@@ -171,7 +171,7 @@ GameObject:
   - component: {fileID: 93988977}
   - component: {fileID: 93988976}
   - component: {fileID: 93988975}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Tabletop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -576,11 +576,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   useHover: 1
-  usePrimaryHover: 0
+  usePrimaryHover: 1
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
   suspendedColor: {r: 1, g: 0, b: 0, a: 1}
-  hoverColor: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 1}
-  primaryHoverColor: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
+  hoverColor: {r: 0.78431374, g: 1, b: 0.78431374, a: 1}
+  primaryHoverColor: {r: 0.5882353, g: 1, b: 0.5882353, a: 1}
   pressedColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &955126787
 MonoBehaviour:
@@ -2269,6 +2269,8 @@ MonoBehaviour:
   leftDetector: {fileID: 354816367}
   rightHandModel: {fileID: 1562694779}
   rightDetector: {fileID: 384750857}
+  leftInteractionHand: {fileID: 15244172}
+  rightInteractionHand: {fileID: 1855276864}
 --- !u!23 &1908682004
 MeshRenderer:
   m_ObjectHideFlags: 0
