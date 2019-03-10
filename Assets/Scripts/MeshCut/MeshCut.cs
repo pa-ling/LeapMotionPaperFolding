@@ -23,11 +23,23 @@
 //    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //    SOFTWARE.
 
-using UnityEngine;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
+using Leap.Unity.Interaction;
 
 public class MeshCut
 {
+    private static Type[] newComponents = new Type[]
+    {
+        typeof(MeshFilter),
+        typeof(MeshRenderer),
+        typeof(MeshCollider),
+        typeof(Rigidbody),
+        typeof(InteractionBehaviour),
+        typeof(InteractionGlow)
+    };
+
     private static MeshMaker _leftSide = new MeshMaker();
     private static MeshMaker _rightSide = new MeshMaker();
 
@@ -130,35 +142,34 @@ public class MeshCut
         right_HalfMesh.name = "Split Mesh Right";
 
         // assign the game objects
-        GameObject leftSideObj = new GameObject("left side", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
-        leftSideObj.transform.position = victim.transform.position;
-        leftSideObj.transform.rotation = victim.transform.rotation;
-        leftSideObj.GetComponent<MeshFilter>().mesh = left_HalfMesh;
-        leftSideObj.GetComponent<MeshCollider>().sharedMesh = left_HalfMesh;
-
-        GameObject rightSideObj = new GameObject("right side", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
-        rightSideObj.transform.position = victim.transform.position;
-        rightSideObj.transform.rotation = victim.transform.rotation;
-        rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
-        rightSideObj.GetComponent<MeshCollider>().sharedMesh = right_HalfMesh;
-
-        if (victim.transform.parent != null)
-        {
-            leftSideObj.transform.parent = victim.transform.parent;
-            rightSideObj.transform.parent = victim.transform.parent;
-        }
-
-        leftSideObj.transform.localScale = victim.transform.localScale;
-        rightSideObj.transform.localScale = victim.transform.localScale;
-
-        // assign mats
-        leftSideObj.GetComponent<MeshRenderer>().materials = mats;
-        rightSideObj.GetComponent<MeshRenderer>().materials = mats;
+        GameObject leftSideObj = CreateGameObject("Left", left_HalfMesh, mats, victim);
+        GameObject rightSideObj = CreateGameObject("Right", right_HalfMesh, mats, victim);
 
         // delete old object
-        Object.Destroy(victim);
+        UnityEngine.Object.Destroy(victim);
 
         return new GameObject[] { leftSideObj, rightSideObj };
+    }
+
+    private static GameObject CreateGameObject(String name, Mesh mesh, Material[] materials, GameObject parent)
+    {
+        //TODO: Maybe this should be done in the calling class
+        GameObject obj = new GameObject(name, newComponents);
+        obj.transform.position = parent.transform.position;
+        obj.transform.rotation = parent.transform.rotation;
+        obj.GetComponent<MeshFilter>().mesh = mesh;
+        obj.GetComponent<MeshCollider>().sharedMesh = mesh;
+        obj.GetComponent<MeshCollider>().convex = true;
+        if (parent.transform.parent != null)
+            obj.transform.parent = parent.transform.parent;
+        obj.transform.localScale = parent.transform.localScale;
+        obj.GetComponent<MeshRenderer>().materials = materials;
+        InteractionBehaviour ib = obj.GetComponent<InteractionBehaviour>();
+        ib.ignoreContact = true;
+        ib.moveObjectWhenGrasped = false;
+        ib.allowMultiGrasp = true;
+
+        return obj;
     }
 
     /// <summary>

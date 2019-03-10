@@ -88,19 +88,20 @@ public class BladeMovement : MonoBehaviour {
 
         if (interHand.isGraspingObject)
         {
-            marker.SetActive(true);
             Vector3 graspPoint = interHand.GetGraspPoint();
             graspPoint.y = 0;
             marker.transform.position = graspPoint;
             junction = graspPoint;
+            laser.SetActive(false);
+            marker.SetActive(true);
         } 
         else if (Physics.Raycast(indexTipPos, thumbTipPos - indexTipPos, out hit, Vector3.Distance(indexTipPos, thumbTipPos), PAPER_LAYER_MASK))
         {
-            laser.SetActive(true);
-            marker.SetActive(true);
             marker.transform.position = hit.point;
             ShowLaser(laser, indexTipPos, thumbTipPos);
             junction = hit.point;
+            laser.SetActive(true);
+            marker.SetActive(true);
         }
         else
         {
