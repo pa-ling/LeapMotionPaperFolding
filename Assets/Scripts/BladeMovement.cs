@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Collections;
 using UnityEngine;
 using Leap.Unity;
 using Leap.Unity.Interaction;
 
 public class BladeMovement : MonoBehaviour {
 
-    private enum HandObject { Laser, Marker, Fold };
+    private enum HandObject { Laser, Marker};
     private enum HandVector { PaperHit };
 
     private const int PAPER_LAYER_MASK = ~(1 << 2);
@@ -22,9 +21,6 @@ public class BladeMovement : MonoBehaviour {
     private List<GameObject>[] handObjects;
     private List<Vector3>[] handVectors;
     private GameObject verticalLaser; // the laser that is vertical to connectionLaser
-
-    private bool leftGrasping = false;
-    private bool rightGrasping = false;
 
     private void Start()
     {
@@ -45,12 +41,10 @@ public class BladeMovement : MonoBehaviour {
         leftInteractionHand.OnStayPrimaryHoveringObject += OnLeftPrimaryHover;
         leftInteractionHand.OnEndPrimaryHoveringObject += OnLeftEndPrimaryHover;
         leftInteractionHand.OnGraspBegin += OnLeftGraspBegin;
-        leftInteractionHand.OnGraspEnd += OnLeftGraspEnd;
 
         rightInteractionHand.OnStayPrimaryHoveringObject += OnRightPrimaryHover;
         rightInteractionHand.OnEndPrimaryHoveringObject += OnRightEndPrimaryHover;
         rightInteractionHand.OnGraspBegin += OnRightGraspBegin;
-        rightInteractionHand.OnGraspEnd += OnRightGraspEnd;
     }
 
     private void Update()
@@ -80,33 +74,41 @@ public class BladeMovement : MonoBehaviour {
         laser.transform.localScale = new Vector3(laser.transform.localScale.x, laser.transform.localScale.y, Vector3.Distance(origin, destination)); // Scale laser so it fits exactly between the controller & the hit point
     }
 
-    private void OnPrimaryHover(HandModel hand, InteractionBehaviour obj)
+    private void OnPrimaryHover(HandModel hand, InteractionHand interHand, InteractionBehaviour obj)
     {
-        Vector3 thumbTipPos = hand.fingers[0].GetTipPosition();
-        Vector3 indexTipPos = hand.fingers[1].GetTipPosition();
         int handedness = (int) hand.Handedness;
-        float distance = Vector3.Distance(indexTipPos, thumbTipPos);
+        Vector3 junction = Vector3.negativeInfinity;
 
-        handObjects[handedness][(int) HandObject.Fold] = obj.gameObject;
+        GameObject marker = handObjects[handedness][(int)HandObject.Marker];
+        GameObject laser = handObjects[handedness][(int)HandObject.Laser];
 
         RaycastHit hit;
-        if (Physics.Raycast(indexTipPos, thumbTipPos - indexTipPos, out hit, distance, PAPER_LAYER_MASK))
-        {
-            GameObject laser = handObjects[handedness][(int) HandObject.Laser];
-            GameObject marker = handObjects[handedness][(int) HandObject.Marker];
+        Vector3 thumbTipPos = hand.fingers[0].GetTipPosition();
+        Vector3 indexTipPos = hand.fingers[1].GetTipPosition();
 
+        if (interHand.isGraspingObject)
+        {
+            marker.SetActive(true);
+            Vector3 graspPoint = interHand.GetGraspPoint();
+            graspPoint.y = 0;
+            marker.transform.position = graspPoint;
+            junction = graspPoint;
+        } 
+        else if (Physics.Raycast(indexTipPos, thumbTipPos - indexTipPos, out hit, Vector3.Distance(indexTipPos, thumbTipPos), PAPER_LAYER_MASK))
+        {
             laser.SetActive(true);
             marker.SetActive(true);
             marker.transform.position = hit.point;
             ShowLaser(laser, indexTipPos, thumbTipPos);
-            handVectors[handedness][(int)HandVector.PaperHit] = hit.point;
+            junction = hit.point;
         }
         else
         {
-            handObjects[handedness][(int) HandObject.Marker].SetActive(false);
-            handObjects[handedness][(int) HandObject.Laser].SetActive(false);
-            handVectors[handedness][(int) HandVector.PaperHit] = Vector3.negativeInfinity;
+            laser.SetActive(false);
+            marker.SetActive(false);
         }
+        
+        handVectors[handedness][(int)HandVector.PaperHit] = junction;
     }
 
     private void OnEndPrimaryHover(HandModel hand, InteractionBehaviour obj)
@@ -116,18 +118,8 @@ public class BladeMovement : MonoBehaviour {
 
     private void OnGraspBegin(HandModel hand)
     {
-        if (Chirality.Left == hand.Handedness)
-        {
-            handObjects[(int)Chirality.Left][(int)HandObject.Marker].GetComponent<MeshRenderer>().material.color = Color.green;
-            leftGrasping = true;
-        } else
-        {
-            handObjects[(int)Chirality.Right][(int)HandObject.Marker].GetComponent<MeshRenderer>().material.color = Color.green;
-            rightGrasping = true;
-        }
-
         // when both hands grasp, the victim is cut
-        if (leftGrasping && rightGrasping)
+        if (leftInteractionHand.isGraspingObject && rightInteractionHand.isGraspingObject) //TODO: Make sure both hands are grasping the same object?
         {
             RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
             foreach (RaycastHit hit in hits)
@@ -140,25 +132,11 @@ public class BladeMovement : MonoBehaviour {
         }
     }
 
-    private void OnGraspEnd(HandModel hand)
-    {
-        if (Chirality.Left == hand.Handedness)
-        {
-            handObjects[(int)Chirality.Left][(int)HandObject.Marker].GetComponent<MeshRenderer>().material.color = Color.blue;
-            leftGrasping = false;
-        }
-        else
-        {
-            handObjects[(int)Chirality.Right][(int)HandObject.Marker].GetComponent<MeshRenderer>().material.color = Color.blue;
-            rightGrasping = false;
-        }
-    }
-
     #region leftEventHandlers
 
     private void OnLeftPrimaryHover(InteractionBehaviour obj)
     {
-        OnPrimaryHover(leftHandModel, obj);
+        OnPrimaryHover(leftHandModel, leftInteractionHand, obj);
     }
 
     private void OnLeftEndPrimaryHover(InteractionBehaviour obj)
@@ -171,18 +149,13 @@ public class BladeMovement : MonoBehaviour {
         OnGraspBegin(leftHandModel);
     }
 
-    private void OnLeftGraspEnd()
-    {
-        OnGraspEnd(leftHandModel);
-    }
-
     #endregion leftEventHandlers
 
     #region rightEventHandlers
 
     private void OnRightPrimaryHover(InteractionBehaviour obj)
     {
-        OnPrimaryHover(rightHandModel, obj);
+        OnPrimaryHover(rightHandModel, rightInteractionHand, obj);
     }
 
     private void OnRightEndPrimaryHover(InteractionBehaviour obj)
@@ -193,11 +166,6 @@ public class BladeMovement : MonoBehaviour {
     private void OnRightGraspBegin()
     {
         OnGraspBegin(rightHandModel);
-    }
-
-    private void OnRightGraspEnd()
-    {
-        OnGraspEnd(rightHandModel);
     }
 
     #endregion rightEventHandlers

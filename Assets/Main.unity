@@ -462,16 +462,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 955126785}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b02e2f8ae628ac4f9faca951fe12db4, type: 3}
+  m_Script: {fileID: 11500000, guid: 6aa1959555c17ab4e874840a6ef65f69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  useHover: 1
+  useHover: 0
   usePrimaryHover: 1
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
   suspendedColor: {r: 1, g: 0, b: 0, a: 1}
-  hoverColor: {r: 0.78431374, g: 1, b: 0.78431374, a: 1}
-  primaryHoverColor: {r: 0.5882353, g: 1, b: 0.5882353, a: 1}
-  pressedColor: {r: 1, g: 1, b: 1, a: 1}
+  hoverColor: {r: 1, g: 1, b: 1, a: 1}
+  primaryHoverColor: {r: 0.8, g: 0.8, b: 1, a: 1}
+  graspColor: {r: 0.5, g: 0.5, b: 1, a: 1}
+  multiGraspColor: {r: 0.2, g: 0.2, b: 1, a: 1}
 --- !u!114 &955126787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2156,10 +2157,8 @@ MonoBehaviour:
   markerPrefab: {fileID: 1619930419461808, guid: bc50cb4358969c9478c842d4f37dee81,
     type: 2}
   leftHandModel: {fileID: 1978883356}
-  leftDetector: {fileID: 0}
-  rightHandModel: {fileID: 1562694779}
-  rightDetector: {fileID: 0}
   leftInteractionHand: {fileID: 15244172}
+  rightHandModel: {fileID: 1562694779}
   rightInteractionHand: {fileID: 1855276864}
 --- !u!65 &1908682004
 BoxCollider:
