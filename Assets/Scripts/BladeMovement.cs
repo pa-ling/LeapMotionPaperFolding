@@ -129,6 +129,23 @@ public class BladeMovement : MonoBehaviour {
                 GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
                 pieces[0].transform.position += .0003f * transform.right;
                 pieces[1].transform.position -= .0003f * transform.right;
+
+                foreach (GameObject piece in pieces)
+                {
+                    piece.AddComponent<MeshCollider>();
+                    piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
+                    piece.GetComponent<MeshCollider>().convex = true;
+                    piece.AddComponent<Rigidbody>();
+                    piece.AddComponent<InteractionBehaviour>();
+                    InteractionBehaviour ib = piece.GetComponent<InteractionBehaviour>();
+                    ib.ignoreContact = true;
+                    ib.moveObjectWhenGrasped = false;
+                    ib.allowMultiGrasp = true;
+                    piece.AddComponent<InteractionGlow>();
+                }
+
+                GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
+                cutMarker.SetActive(true);
             }
         }
     }

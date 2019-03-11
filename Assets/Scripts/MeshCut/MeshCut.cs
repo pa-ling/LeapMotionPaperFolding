@@ -33,11 +33,7 @@ public class MeshCut
     private static Type[] newComponents = new Type[]
     {
         typeof(MeshFilter),
-        typeof(MeshRenderer),
-        typeof(MeshCollider),
-        typeof(Rigidbody),
-        typeof(InteractionBehaviour),
-        typeof(InteractionGlow)
+        typeof(MeshRenderer)
     };
 
     private static MeshMaker _leftSide = new MeshMaker();
@@ -153,22 +149,14 @@ public class MeshCut
 
     private static GameObject CreateGameObject(String name, Mesh mesh, Material[] materials, GameObject parent)
     {
-        //TODO: Maybe this should be done in the calling class
         GameObject obj = new GameObject(name, newComponents);
         obj.transform.position = parent.transform.position;
         obj.transform.rotation = parent.transform.rotation;
         obj.GetComponent<MeshFilter>().mesh = mesh;
-        obj.GetComponent<MeshCollider>().sharedMesh = mesh;
-        obj.GetComponent<MeshCollider>().convex = true;
         if (parent.transform.parent != null)
             obj.transform.parent = parent.transform.parent;
         obj.transform.localScale = parent.transform.localScale;
         obj.GetComponent<MeshRenderer>().materials = materials;
-        InteractionBehaviour ib = obj.GetComponent<InteractionBehaviour>();
-        ib.ignoreContact = true;
-        ib.moveObjectWhenGrasped = false;
-        ib.allowMultiGrasp = true;
-
         return obj;
     }
 
