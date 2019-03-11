@@ -54,10 +54,13 @@ public class BladeMovement : MonoBehaviour {
 
     private void Update()
     {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Cut();
+        }
+
         Vector3 leftHit = handVectors[(int)Chirality.Left][(int)HandVector.PaperHit];
         Vector3 rightHit = handVectors[(int)Chirality.Right][(int)HandVector.PaperHit];
-
-        Debug.Log(leftHit);
 
         if (Vector3.negativeInfinity.Equals(leftHit) || Vector3.negativeInfinity.Equals(rightHit))
         {
@@ -129,33 +132,38 @@ public class BladeMovement : MonoBehaviour {
         // when both hands grasp, the victim is cut
         if (leftInteractionHand.isGraspingObject && rightInteractionHand.isGraspingObject) //TODO: Make sure both hands are grasping the same object?
         {
-            Debug.Log("Cut");
-            RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
-            foreach (RaycastHit hit in hits)
+            Cut();
+        }
+    }
+
+    private void Cut()
+    {
+        Debug.Log("Cut");
+        RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
+        foreach (RaycastHit hit in hits)
+        {
+            GameObject victim = hit.collider.gameObject;
+            GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
+            pieces[0].transform.position += .0004f * transform.right;
+            pieces[1].transform.position -= .0004f * transform.right;
+
+            /*foreach (GameObject piece in pieces)
             {
-                GameObject victim = hit.collider.gameObject;
-                GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
-                pieces[0].transform.position += .0003f * transform.right;
-                pieces[1].transform.position -= .0003f * transform.right;
+                piece.AddComponent<MeshCollider>();
+                piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
+                piece.GetComponent<MeshCollider>().convex = true;
+                piece.AddComponent<Rigidbody>();
+                piece.AddComponent<InteractionBehaviour>();
+                InteractionBehaviour ib = piece.GetComponent<InteractionBehaviour>();
+                ib.ignoreContact = true;
+                ib.moveObjectWhenGrasped = false;
+                ib.allowMultiGrasp = true;
+                piece.AddComponent<InteractionGlow>();
+            }*/
 
-                /*foreach (GameObject piece in pieces)
-                {
-                    piece.AddComponent<MeshCollider>();
-                    piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
-                    piece.GetComponent<MeshCollider>().convex = true;
-                    piece.AddComponent<Rigidbody>();
-                    piece.AddComponent<InteractionBehaviour>();
-                    InteractionBehaviour ib = piece.GetComponent<InteractionBehaviour>();
-                    ib.ignoreContact = true;
-                    ib.moveObjectWhenGrasped = false;
-                    ib.allowMultiGrasp = true;
-                    piece.AddComponent<InteractionGlow>();
-                }*/
-
-                GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
-                cutMarker.SetActive(true);
-                cutMarker.name = "Cut";
-            }
+            GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
+            cutMarker.SetActive(true);
+            cutMarker.name = "Cut";
         }
     }
 
