@@ -29,6 +29,10 @@ public class BladeMovement : MonoBehaviour {
             new List<GameObject> { Instantiate(laserPrefab), Instantiate(markerPrefab) , null},
             new List<GameObject> { Instantiate(laserPrefab), Instantiate(markerPrefab) , null},
         };
+        handObjects[0][0].name = "Left Hand Laser";
+        handObjects[0][1].name = "Left Hand Marker";
+        handObjects[1][0].name = "Right Hand Laser";
+        handObjects[1][1].name = "Right Hand Marker";
 
         handVectors = new List<Vector3>[2]
         {
@@ -37,6 +41,7 @@ public class BladeMovement : MonoBehaviour {
         };
 
         verticalLaser = Instantiate(laserPrefab);
+        verticalLaser.name = "Vertical Laser";
 
         leftInteractionHand.OnStayPrimaryHoveringObject += OnLeftPrimaryHover;
         leftInteractionHand.OnEndPrimaryHoveringObject += OnLeftEndPrimaryHover;
@@ -52,6 +57,8 @@ public class BladeMovement : MonoBehaviour {
         Vector3 leftHit = handVectors[(int)Chirality.Left][(int)HandVector.PaperHit];
         Vector3 rightHit = handVectors[(int)Chirality.Right][(int)HandVector.PaperHit];
 
+        Debug.Log(leftHit);
+
         if (Vector3.negativeInfinity.Equals(leftHit) || Vector3.negativeInfinity.Equals(rightHit))
         {
             verticalLaser.SetActive(false);
@@ -62,9 +69,9 @@ public class BladeMovement : MonoBehaviour {
         ShowLaser(verticalLaser, leftHit, rightHit);
         verticalLaser.transform.Rotate(new Vector3(0, 90, 0));
 
-        transform.position = verticalLaser.transform.position + new Vector3(0, 1, 0);
-        transform.rotation = verticalLaser.transform.rotation;
-        transform.Rotate(new Vector3(90, 0, 0));
+        this.transform.position = verticalLaser.transform.position + new Vector3(0, 1, 0);
+        this.transform.rotation = verticalLaser.transform.rotation;
+        this.transform.Rotate(new Vector3(90, 0, 0));
     }
 
     private void ShowLaser(GameObject laser, Vector3 origin, Vector3 destination)
@@ -89,7 +96,7 @@ public class BladeMovement : MonoBehaviour {
         if (interHand.isGraspingObject)
         {
             Vector3 graspPoint = interHand.GetGraspPoint();
-            graspPoint.y = 0;
+            graspPoint.y = obj.transform.position.y;
             marker.transform.position = graspPoint;
             junction = graspPoint;
             laser.SetActive(false);
@@ -122,6 +129,7 @@ public class BladeMovement : MonoBehaviour {
         // when both hands grasp, the victim is cut
         if (leftInteractionHand.isGraspingObject && rightInteractionHand.isGraspingObject) //TODO: Make sure both hands are grasping the same object?
         {
+            Debug.Log("Cut");
             RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
             foreach (RaycastHit hit in hits)
             {
@@ -130,7 +138,7 @@ public class BladeMovement : MonoBehaviour {
                 pieces[0].transform.position += .0003f * transform.right;
                 pieces[1].transform.position -= .0003f * transform.right;
 
-                foreach (GameObject piece in pieces)
+                /*foreach (GameObject piece in pieces)
                 {
                     piece.AddComponent<MeshCollider>();
                     piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
@@ -142,10 +150,11 @@ public class BladeMovement : MonoBehaviour {
                     ib.moveObjectWhenGrasped = false;
                     ib.allowMultiGrasp = true;
                     piece.AddComponent<InteractionGlow>();
-                }
+                }*/
 
                 GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
                 cutMarker.SetActive(true);
+                cutMarker.name = "Cut";
             }
         }
     }
