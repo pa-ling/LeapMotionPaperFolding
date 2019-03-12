@@ -50,9 +50,10 @@ public class MeshCut
     /// </summary>
     public static GameObject[] Cut(GameObject victim, Vector3 anchorPoint, Vector3 normalDirection, Material capMaterial)
     {
+        Debug.Log("Normal Direction: " + normalDirection);
         // set the blade relative to victim
-        //_blade = new Plane(normalDirection, anchorPoint);
         _blade = new Plane(normalDirection, anchorPoint - victim.transform.position);
+        
 
         // get the victims mesh
         Mesh _victim_mesh = victim.GetComponent<MeshFilter>().mesh;

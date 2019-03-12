@@ -69,19 +69,14 @@ public class BladeMovement : MonoBehaviour {
         }
 
         verticalLaser.SetActive(true);
-        ShowLaser(verticalLaser, leftHit, rightHit);
+        verticalLaser.transform.position = Vector3.Lerp(leftHit, rightHit, .5f);
+        verticalLaser.transform.LookAt(rightHit);
+        verticalLaser.transform.localScale = new Vector3(verticalLaser.transform.localScale.x, verticalLaser.transform.localScale.y, Vector3.Distance(leftHit, rightHit));
         verticalLaser.transform.Rotate(new Vector3(0, 90, 0));
 
-        this.transform.position = verticalLaser.transform.position + new Vector3(0, 1, 0);
+        this.transform.position = verticalLaser.transform.position + verticalLaser.transform.up;
         this.transform.rotation = verticalLaser.transform.rotation;
         this.transform.Rotate(new Vector3(90, 0, 0));
-    }
-
-    private void ShowLaser(GameObject laser, Vector3 origin, Vector3 destination)
-    {
-        laser.transform.position = Vector3.Lerp(origin, destination, .5f); // Move laser to the middle between the controller and the position the raycast hit
-        laser.transform.LookAt(destination); // Rotate laser facing the hit point
-        laser.transform.localScale = new Vector3(laser.transform.localScale.x, laser.transform.localScale.y, Vector3.Distance(origin, destination)); // Scale laser so it fits exactly between the controller & the hit point
     }
 
     private void OnPrimaryHover(HandModel hand, InteractionHand interHand, InteractionBehaviour obj)
@@ -90,7 +85,6 @@ public class BladeMovement : MonoBehaviour {
         Vector3 junction = Vector3.negativeInfinity;
 
         GameObject marker = handObjects[handedness][(int)HandObject.Marker];
-        GameObject laser = handObjects[handedness][(int)HandObject.Laser];
 
         RaycastHit hit;
         Vector3 thumbTipPos = hand.fingers[0].GetTipPosition();
@@ -101,21 +95,19 @@ public class BladeMovement : MonoBehaviour {
             Vector3 graspPoint = interHand.GetGraspPoint();
             graspPoint.y = obj.transform.position.y;
             marker.transform.position = graspPoint;
+            marker.transform.rotation = obj.transform.rotation;
             junction = graspPoint;
-            laser.SetActive(false);
             marker.SetActive(true);
         } 
         else if (Physics.Raycast(indexTipPos, thumbTipPos - indexTipPos, out hit, Vector3.Distance(indexTipPos, thumbTipPos), PAPER_LAYER_MASK))
         {
             marker.transform.position = hit.point;
-            ShowLaser(laser, indexTipPos, thumbTipPos);
+            marker.transform.rotation = obj.transform.rotation;
             junction = hit.point;
-            laser.SetActive(true);
             marker.SetActive(true);
         }
         else
         {
-            laser.SetActive(false);
             marker.SetActive(false);
         }
         
@@ -181,6 +173,7 @@ public class BladeMovement : MonoBehaviour {
 
     private void OnLeftGraspBegin()
     {
+        Debug.Log("Left Grasp");
         OnGraspBegin(leftHandModel);
     }
 
@@ -200,6 +193,7 @@ public class BladeMovement : MonoBehaviour {
 
     private void OnRightGraspBegin()
     {
+        Debug.Log("Right Grasp");
         OnGraspBegin(rightHandModel);
     }
 

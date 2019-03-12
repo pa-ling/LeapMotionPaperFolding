@@ -107,7 +107,9 @@ public class ModifyCubeMesh : MonoBehaviour {
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = GetComponent<MeshRenderer>().sharedMaterial.color;
+        Matrix4x4 rotationMatrix = Matrix4x4.TRS(Vector3.zero, transform.rotation, transform.lossyScale);
+        Gizmos.matrix = rotationMatrix;
+        Gizmos.color = Color.green;
         Gizmos.DrawCube(transform.position, new Vector3(newSize*2, transform.localScale.y, newSize*2));
     }
 
