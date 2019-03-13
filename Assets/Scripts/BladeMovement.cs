@@ -59,31 +59,70 @@ public class BladeMovement : MonoBehaviour {
             Cut();
         }
 
-        Vector3 leftHit = handVectors[(int)Chirality.Left][(int)HandVector.PaperHit];
-        Vector3 rightHit = handVectors[(int)Chirality.Right][(int)HandVector.PaperHit];
-
-        if (Vector3.negativeInfinity.Equals(leftHit) || Vector3.negativeInfinity.Equals(rightHit))
+        if (!(leftHandModel.gameObject.activeSelf && rightHandModel.gameObject.activeSelf))
         {
-            verticalLaser.SetActive(false);
             return;
         }
+   
+        Vector3 leftThumbTipPos = leftHandModel.fingers[0].GetTipPosition();
+        Vector3 leftIndexTipPos = leftHandModel.fingers[1].GetTipPosition();
+        Vector3 rightThumbTipPos = rightHandModel.fingers[0].GetTipPosition();
+        Vector3 rightIndexTipPos = rightHandModel.fingers[1].GetTipPosition();
+        Vector3 midThumbTipPos = Vector3.Lerp(leftThumbTipPos, rightThumbTipPos, .5f);
+        Vector3 midIndexTipPos = Vector3.Lerp(leftIndexTipPos, rightIndexTipPos, .5f);
 
-        Debug.DrawRay(leftHit, Vector3.Normalize(rightHit - leftHit) * Vector3.Distance(leftHit, rightHit), Color.red);
+        Vector3 frontDirection = RotateAroundAxis(Vector3.Normalize(leftThumbTipPos - rightThumbTipPos), 90, new Vector3(0, 1, 0));
+        Vector3 frontThumbMidPos = midThumbTipPos + frontDirection * 0.01f;
+        Vector3 frontIndexMidPos = midIndexTipPos + frontDirection * 0.01f;
 
-        verticalLaser.SetActive(true);
-        verticalLaser.transform.position = Vector3.Lerp(leftHit, rightHit, .5f);
-        verticalLaser.transform.LookAt(rightHit);
-        verticalLaser.transform.localScale = new Vector3(verticalLaser.transform.localScale.x, verticalLaser.transform.localScale.y, Vector3.Distance(leftHit, rightHit));
-        verticalLaser.transform.Rotate(new Vector3(0, 90, 0));
+        #region debug
+        DebugRay(leftThumbTipPos, leftIndexTipPos, Color.blue);
+        DebugRay(rightThumbTipPos, rightIndexTipPos, Color.blue);
+        DebugRay(leftThumbTipPos, rightThumbTipPos, Color.green);
+        DebugRay(leftIndexTipPos, rightIndexTipPos, Color.green);
+        DebugRay(midThumbTipPos, midIndexTipPos, Color.yellow);
+        DebugRay(midThumbTipPos, frontThumbMidPos, Color.cyan);
+        DebugRay(midIndexTipPos, frontIndexMidPos, Color.cyan);
+        DebugRay(frontThumbMidPos, frontIndexMidPos, Color.red);
+        #endregion debug
 
-        this.transform.position = verticalLaser.transform.position + verticalLaser.transform.up;
-        this.transform.rotation = verticalLaser.transform.rotation;
-        this.transform.Rotate(new Vector3(90, 0, 0));
+        RaycastHit midHit, frontHit;
+        bool hitMid = Physics.Raycast(midIndexTipPos, midThumbTipPos - midIndexTipPos, out midHit, Vector3.Distance(midIndexTipPos, midThumbTipPos), PAPER_LAYER_MASK);
+        bool hitFront = Physics.Raycast(frontIndexMidPos, frontThumbMidPos - frontIndexMidPos, out frontHit, Vector3.Distance(frontIndexMidPos, frontThumbMidPos), PAPER_LAYER_MASK);
+
+        if (hitMid && hitFront)
+        {
+            verticalLaser.transform.position = midHit.point;
+            verticalLaser.transform.LookAt(frontHit.point);
+            verticalLaser.transform.rotation *= midHit.collider.gameObject.transform.rotation;
+            verticalLaser.transform.localScale = new Vector3(verticalLaser.transform.localScale.x, verticalLaser.transform.localScale.y, Vector3.Distance(leftIndexTipPos, rightIndexTipPos));
+            verticalLaser.SetActive(true);
+
+            this.transform.position = verticalLaser.transform.position + verticalLaser.transform.up;
+            this.transform.rotation = verticalLaser.transform.rotation;
+            this.transform.Rotate(new Vector3(90, 0, 0));
+        } else
+        {
+            verticalLaser.SetActive(false);
+        }
+
+    }
+
+    public static Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
+    {
+        if (bUseRadians) a *= Mathf.Rad2Deg;
+        var q = Quaternion.AngleAxis(a, axis);
+        return q * v;
+    }
+
+    private void DebugRay(Vector3 origin, Vector3 destination, Color color)
+    {
+        Debug.DrawRay(origin, Vector3.Normalize(destination - origin) * Vector3.Distance(origin, destination), color, 0, true);
     }
 
     private void OnPrimaryHover(HandModel hand, InteractionHand interHand, InteractionBehaviour obj)
     {
-        int handedness = (int) hand.Handedness;
+        /*int handedness = (int) hand.Handedness;
         Vector3 junction = Vector3.negativeInfinity;
 
         GameObject marker = handObjects[handedness][(int)HandObject.Marker];
@@ -103,7 +142,6 @@ public class BladeMovement : MonoBehaviour {
         } 
         else if (Physics.Raycast(indexTipPos, thumbTipPos - indexTipPos, out hit, Vector3.Distance(indexTipPos, thumbTipPos), PAPER_LAYER_MASK))
         {
-            Debug.DrawRay(indexTipPos, Vector3.Normalize(thumbTipPos - indexTipPos) * Vector3.Distance(indexTipPos, thumbTipPos), Color.red);
             marker.transform.position = hit.point;
             marker.transform.rotation = obj.transform.rotation;
             junction = hit.point;
@@ -114,7 +152,7 @@ public class BladeMovement : MonoBehaviour {
             marker.SetActive(false);
         }
         
-        handVectors[handedness][(int)HandVector.PaperHit] = junction;
+        handVectors[handedness][(int)HandVector.PaperHit] = junction;*/
     }
 
     private void OnEndPrimaryHover(HandModel hand, InteractionBehaviour obj)
