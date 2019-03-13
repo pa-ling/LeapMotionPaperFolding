@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
 using UnityEngine;
 using Leap.Unity;
 using Leap.Unity.Interaction;
@@ -24,6 +24,19 @@ public class BladeMovement : MonoBehaviour {
 
         leftInteractionHand.OnGraspBegin += OnGraspBegin;
         rightInteractionHand.OnGraspBegin += OnGraspBegin;
+
+        StartCoroutine("MakeCuts");
+    }
+
+    private IEnumerator MakeCuts()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            this.transform.Rotate(new Vector3(0, 0, 1), i * 90);
+            this.transform.position += Vector3.right * 0.001f;
+            Cut();
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 
     private void Update()
