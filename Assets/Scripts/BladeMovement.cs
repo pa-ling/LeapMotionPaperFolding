@@ -46,17 +46,13 @@ public class BladeMovement : MonoBehaviour {
         Vector3 midIndexTipPos = Vector3.Lerp(leftIndexTipPos, rightIndexTipPos, .5f);
 
         Vector3 frontDirection = RotateAroundAxis(Vector3.Normalize(leftThumbTipPos - rightThumbTipPos), 90, new Vector3(0, 1, 0));
-        Vector3 frontThumbMidPos = midThumbTipPos + frontDirection * 0.01f;
-        Vector3 frontIndexMidPos = midIndexTipPos + frontDirection * 0.01f;
+        Vector3 frontThumbMidPos = midThumbTipPos + frontDirection * 0.001f;
+        Vector3 frontIndexMidPos = midIndexTipPos + frontDirection * 0.001f;
 
         #region debug
-        DebugRay(leftThumbTipPos, leftIndexTipPos, Color.blue);
-        DebugRay(rightThumbTipPos, rightIndexTipPos, Color.blue);
         DebugRay(leftThumbTipPos, rightThumbTipPos, Color.green);
         DebugRay(leftIndexTipPos, rightIndexTipPos, Color.green);
         DebugRay(midThumbTipPos, midIndexTipPos, Color.yellow);
-        DebugRay(midThumbTipPos, frontThumbMidPos, Color.cyan);
-        DebugRay(midIndexTipPos, frontIndexMidPos, Color.cyan);
         DebugRay(frontThumbMidPos, frontIndexMidPos, Color.red);
         #endregion debug
 
