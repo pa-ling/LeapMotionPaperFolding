@@ -171,16 +171,15 @@ public class BladeMovement : MonoBehaviour {
 
     private void Cut()
     {
-        Debug.Log("Cut");
         RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
         foreach (RaycastHit hit in hits)
         {
             GameObject victim = hit.collider.gameObject;
             GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
-            pieces[0].transform.position += .0004f * transform.right;
-            pieces[1].transform.position -= .0004f * transform.right;
+            pieces[0].transform.position += 0.0004f * transform.right;
+            pieces[1].transform.position -= 0.0004f * transform.right;
 
-            /*foreach (GameObject piece in pieces)
+            foreach (GameObject piece in pieces)
             {
                 piece.AddComponent<MeshCollider>();
                 piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
@@ -192,11 +191,11 @@ public class BladeMovement : MonoBehaviour {
                 ib.moveObjectWhenGrasped = false;
                 ib.allowMultiGrasp = true;
                 piece.AddComponent<InteractionGlow>();
-            }*/
+            }
 
-            GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
+            /*GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
             cutMarker.SetActive(true);
-            cutMarker.name = "Cut";
+            cutMarker.name = "Cut";*/
         }
     }
 
