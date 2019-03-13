@@ -107,10 +107,10 @@ public class ModifyCubeMesh : MonoBehaviour {
 
     private void OnDrawGizmos()
     {
-        Matrix4x4 rotationMatrix = Matrix4x4.TRS(Vector3.zero, transform.rotation, transform.lossyScale);
+        Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
         Gizmos.matrix = rotationMatrix;
         Gizmos.color = Color.green;
-        Gizmos.DrawCube(transform.position, new Vector3(newSize*2, transform.localScale.y, newSize*2));
+        Gizmos.DrawCube(Vector3.zero, new Vector3(newSize*2, transform.localScale.y, newSize*2));
     }
 
 }

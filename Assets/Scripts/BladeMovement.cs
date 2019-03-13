@@ -20,7 +20,7 @@ public class BladeMovement : MonoBehaviour {
 
     private List<GameObject>[] handObjects;
     private List<Vector3>[] handVectors;
-    private GameObject verticalLaser; // the laser that is vertical to connectionLaser
+    private GameObject verticalLaser;
 
     private void Start()
     {
@@ -68,6 +68,8 @@ public class BladeMovement : MonoBehaviour {
             return;
         }
 
+        Debug.DrawRay(leftHit, Vector3.Normalize(rightHit - leftHit) * Vector3.Distance(leftHit, rightHit), Color.red);
+
         verticalLaser.SetActive(true);
         verticalLaser.transform.position = Vector3.Lerp(leftHit, rightHit, .5f);
         verticalLaser.transform.LookAt(rightHit);
@@ -101,6 +103,7 @@ public class BladeMovement : MonoBehaviour {
         } 
         else if (Physics.Raycast(indexTipPos, thumbTipPos - indexTipPos, out hit, Vector3.Distance(indexTipPos, thumbTipPos), PAPER_LAYER_MASK))
         {
+            Debug.DrawRay(indexTipPos, Vector3.Normalize(thumbTipPos - indexTipPos) * Vector3.Distance(indexTipPos, thumbTipPos), Color.red);
             marker.transform.position = hit.point;
             marker.transform.rotation = obj.transform.rotation;
             junction = hit.point;
