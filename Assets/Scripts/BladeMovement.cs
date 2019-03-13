@@ -30,20 +30,26 @@ public class BladeMovement : MonoBehaviour {
 
     private IEnumerator MakeCuts()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
-            this.transform.Rotate(new Vector3(0, 0, 1), i * 90);
-            this.transform.position += Vector3.right * 0.001f;
             Cut();
+            this.transform.Rotate(new Vector3(0, 0, 1), 45);
+            this.transform.position += Vector3.right * 0.01f;
             yield return new WaitForSeconds(0.1f);
         }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log(collision.collider.gameObject.GetInstanceID());
     }
 
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Cut();
+            //Cut();
+            this.transform.position += this.transform.forward;
         }
 
         if (!(leftHandModel.gameObject.activeSelf && rightHandModel.gameObject.activeSelf))
@@ -128,6 +134,10 @@ public class BladeMovement : MonoBehaviour {
                 piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
                 piece.GetComponent<MeshCollider>().convex = true;
                 piece.AddComponent<Rigidbody>();
+                Rigidbody rb = piece.GetComponent<Rigidbody>();
+                rb.useGravity = false;
+                rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ |
+                    RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezePositionZ;
                 piece.AddComponent<InteractionBehaviour>();
                 InteractionBehaviour ib = piece.GetComponent<InteractionBehaviour>();
                 ib.ignoreContact = true;
