@@ -39,24 +39,23 @@ public class BladeMovement : MonoBehaviour {
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        Debug.Log(collision.collider.gameObject.GetInstanceID());
-    }
-
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            //Cut();
-            this.transform.position += this.transform.forward;
+            Cut();
         }
 
         if (!(leftHandModel.gameObject.activeSelf && rightHandModel.gameObject.activeSelf))
         {
             return;
         }
-   
+
+        HandleMovement();
+    }
+
+    private void HandleMovement()
+    {
         Vector3 leftThumbTipPos = leftHandModel.fingers[0].GetTipPosition();
         Vector3 leftIndexTipPos = leftHandModel.fingers[1].GetTipPosition();
         Vector3 rightThumbTipPos = rightHandModel.fingers[0].GetTipPosition();
@@ -90,23 +89,11 @@ public class BladeMovement : MonoBehaviour {
             this.transform.position = verticalLaser.transform.position + verticalLaser.transform.up;
             this.transform.rotation = verticalLaser.transform.rotation;
             this.transform.Rotate(new Vector3(90, 0, 0));
-        } else
+        }
+        else
         {
             verticalLaser.SetActive(false);
         }
-
-    }
-
-    public static Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
-    {
-        if (bUseRadians) a *= Mathf.Rad2Deg;
-        var q = Quaternion.AngleAxis(a, axis);
-        return q * v;
-    }
-
-    private void DebugRay(Vector3 origin, Vector3 destination, Color color)
-    {
-        Debug.DrawRay(origin, Vector3.Normalize(destination - origin) * Vector3.Distance(origin, destination), color, 0, true);
     }
 
     private void OnGraspBegin()
@@ -137,28 +124,41 @@ public class BladeMovement : MonoBehaviour {
 
             foreach (GameObject piece in pieces)
             {
-                piece.name = piece.GetInstanceID().ToString();
-                piece.tag = "Paper";
-                piece.AddComponent<MeshCollider>();
-                piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
-                piece.GetComponent<MeshCollider>().convex = true;
-                piece.AddComponent<Rigidbody>();
-                Rigidbody rb = piece.GetComponent<Rigidbody>();
-                rb.useGravity = false;
-                rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ |
-                    RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezePositionZ;
-                piece.AddComponent<InteractionBehaviour>();
-                InteractionBehaviour ib = piece.GetComponent<InteractionBehaviour>();
-                ib.ignoreContact = true;
-                ib.moveObjectWhenGrasped = false;
-                ib.allowMultiGrasp = true;
-                piece.AddComponent<InteractionGlow>();
+                AddNecessaryComponents(piece);
             }
-
-            /*GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
-            cutMarker.SetActive(true);
-            cutMarker.name = "Cut";*/
         }
+    }
+
+    private void AddNecessaryComponents(GameObject piece)
+    {
+        piece.name = piece.GetInstanceID().ToString();
+        piece.tag = "Paper";
+        piece.AddComponent<MeshCollider>();
+        piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
+        piece.GetComponent<MeshCollider>().convex = true;
+        piece.AddComponent<Rigidbody>();
+        Rigidbody rb = piece.GetComponent<Rigidbody>();
+        rb.useGravity = false;
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ |
+            RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezePositionZ;
+        piece.AddComponent<InteractionBehaviour>();
+        InteractionBehaviour ib = piece.GetComponent<InteractionBehaviour>();
+        ib.ignoreContact = true;
+        ib.moveObjectWhenGrasped = false;
+        ib.allowMultiGrasp = true;
+        piece.AddComponent<InteractionGlow>();
+    }
+
+    private void DebugRay(Vector3 origin, Vector3 destination, Color color)
+    {
+        Debug.DrawRay(origin, Vector3.Normalize(destination - origin) * Vector3.Distance(origin, destination), color, 0, true);
+    }
+
+    private static Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
+    {
+        if (bUseRadians) a *= Mathf.Rad2Deg;
+        var q = Quaternion.AngleAxis(a, axis);
+        return q * v;
     }
 
     private void OnDrawGizmos()
