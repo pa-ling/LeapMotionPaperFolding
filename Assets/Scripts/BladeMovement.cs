@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Leap.Unity;
 using Leap.Unity.Interaction;
@@ -30,11 +31,11 @@ public class BladeMovement : MonoBehaviour {
 
     private IEnumerator MakeCuts()
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 2; i++)
         {
             Cut();
             this.transform.Rotate(new Vector3(0, 0, 1), 45);
-            this.transform.position += Vector3.right * 0.01f;
+            this.transform.position += Vector3.right * 0.1f;
             yield return new WaitForSeconds(0.1f);
         }
     }
@@ -118,6 +119,13 @@ public class BladeMovement : MonoBehaviour {
         {
             Debug.Log("Hit : " + hit.collider.name);
             GameObject victim = hit.collider.gameObject;
+            List<Transform> children = new List<Transform>();
+            foreach (Transform child in victim.transform)
+            {
+                children.Add(child);
+            }
+            victim.transform.DetachChildren();
+
             GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
             pieces[0].transform.position += 0.0004f * transform.right;
             pieces[1].transform.position -= 0.0004f * transform.right;
@@ -125,7 +133,24 @@ public class BladeMovement : MonoBehaviour {
             foreach (GameObject piece in pieces)
             {
                 AddNecessaryComponents(piece);
+                GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
+                cutMarker.SetActive(true);
+                cutMarker.name = "Cut";
+                cutMarker.transform.parent = piece.transform;
+                foreach (Transform child in children)
+                {
+                    GameObject dup = Instantiate(markerPrefab, child.transform.position, child.transform.rotation);
+                    dup.SetActive(true);
+                    dup.name = "Cut";
+                    dup.transform.parent = piece.transform;
+                }
             }
+
+            foreach (Transform child in children)
+            {
+                Destroy(child.gameObject);
+            }
+
         }
     }
 
