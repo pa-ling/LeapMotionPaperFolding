@@ -138,6 +138,7 @@ public class BladeMovement : MonoBehaviour {
             foreach (GameObject piece in pieces)
             {
                 piece.name = piece.GetInstanceID().ToString();
+                piece.tag = "Paper";
                 piece.AddComponent<MeshCollider>();
                 piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
                 piece.GetComponent<MeshCollider>().convex = true;
