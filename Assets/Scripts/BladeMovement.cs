@@ -17,14 +17,20 @@ public class BladeMovement : MonoBehaviour {
     public InteractionHand rightInteractionHand;
 
     private GameObject verticalLaser;
+    private List<Transform> rotatingObjects;
 
     private void Start()
     { 
         verticalLaser = Instantiate(laserPrefab);
         verticalLaser.name = "Vertical Laser";
 
+        rotatingObjects = new List<Transform>();
+
         leftInteractionHand.OnGraspBegin += OnGraspBegin;
         rightInteractionHand.OnGraspBegin += OnGraspBegin;
+
+        leftInteractionHand.OnStayPrimaryHoveringObject += OnLeftPrimaryHover;
+        rightInteractionHand.OnStayPrimaryHoveringObject += OnRightPrimaryHover;
 
         StartCoroutine("MakeCuts");
     }
@@ -40,7 +46,7 @@ public class BladeMovement : MonoBehaviour {
         }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -106,18 +112,46 @@ public class BladeMovement : MonoBehaviour {
         }
     }
 
+    private void OnPrimaryHover(InteractionHand hand, InteractionBehaviour obj)
+    {
+        if (obj.Equals(hand.graspedObject) && obj.transform.childCount != 0 && !rotatingObjects.Contains(obj.transform))
+        {
+            rotatingObjects.Add(obj.transform);
+            Transform firstChild = obj.transform.GetChild(0);
+            firstChild.SetParent(null);
+            obj.transform.SetParent(firstChild);
+        }
+
+        foreach (Transform rotObj in rotatingObjects)
+        {
+            Transform rotator = rotObj.parent;
+            rotator.Rotate(rotator.right, 0.5f, Space.World);
+        }
+
+        //TODO: Remove object from rotatingobjects and put markers as child of it
+    }
+
+    private void OnLeftPrimaryHover(InteractionBehaviour obj)
+    {
+        OnPrimaryHover(leftInteractionHand, obj);
+    }
+
+    private void OnRightPrimaryHover(InteractionBehaviour obj)
+    {
+        OnPrimaryHover(rightInteractionHand, obj);
+    }
+
     private void Cut()
     {
         RaycastHit[] hits = Physics.BoxCastAll(
             GetComponent<Collider>().bounds.center,
-            transform.localScale, transform.forward,
-            transform.rotation,
+            this.transform.localScale, this.transform.forward,
+            this.transform.rotation,
             300,
             PAPER_LAYER_MASK
         );
         foreach (RaycastHit hit in hits)
         {
-            Debug.Log("Hit : " + hit.collider.name);
             GameObject victim = hit.collider.gameObject;
             List<Transform> children = new List<Transform>();
             foreach (Transform child in victim.transform)
@@ -126,7 +160,7 @@ public class BladeMovement : MonoBehaviour {
             }
             victim.transform.DetachChildren();
 
-            GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
+            GameObject[] pieces = MeshCut.Cut(victim, this.transform.position, this.transform.right, victim.GetComponent<MeshRenderer>().material);
             pieces[0].transform.position += 0.0004f * transform.right;
             pieces[1].transform.position -= 0.0004f * transform.right;
 
@@ -136,13 +170,14 @@ public class BladeMovement : MonoBehaviour {
                 GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
                 cutMarker.SetActive(true);
                 cutMarker.name = "Cut";
-                cutMarker.transform.parent = piece.transform;
+                cutMarker.transform.forward = this.transform.right;
+                cutMarker.transform.SetParent(piece.transform);
                 foreach (Transform child in children)
                 {
                     GameObject dup = Instantiate(markerPrefab, child.transform.position, child.transform.rotation);
                     dup.SetActive(true);
                     dup.name = "Cut";
-                    dup.transform.parent = piece.transform;
+                    dup.transform.SetParent(piece.transform);
                 }
             }
 
