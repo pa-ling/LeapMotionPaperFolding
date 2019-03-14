@@ -2150,7 +2150,7 @@ GameObject:
   - component: {fileID: 1908682005}
   - component: {fileID: 1908682004}
   - component: {fileID: 1908682003}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Blade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2206,7 +2206,7 @@ Transform:
   m_GameObject: {fileID: 1908682002}
   m_LocalRotation: {x: -0.052088775, y: 0.70518565, z: -0.70518565, w: -0.052088775}
   m_LocalPosition: {x: -0.04614856, y: 1, z: -0.2286257}
-  m_LocalScale: {x: 0.0001, y: 1, z: 0.2}
+  m_LocalScale: {x: 0.0001, y: 2, z: 0.2}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3

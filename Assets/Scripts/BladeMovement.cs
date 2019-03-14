@@ -120,9 +120,16 @@ public class BladeMovement : MonoBehaviour {
 
     private void Cut()
     {
-        RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward);
+        RaycastHit[] hits = Physics.BoxCastAll(
+            GetComponent<Collider>().bounds.center,
+            transform.localScale, transform.forward,
+            transform.rotation,
+            300,
+            PAPER_LAYER_MASK
+        );
         foreach (RaycastHit hit in hits)
         {
+            Debug.Log("Hit : " + hit.collider.name);
             GameObject victim = hit.collider.gameObject;
             GameObject[] pieces = MeshCut.Cut(victim, transform.position, transform.right, victim.GetComponent<MeshRenderer>().material);
             pieces[0].transform.position += 0.0004f * transform.right;
@@ -130,6 +137,7 @@ public class BladeMovement : MonoBehaviour {
 
             foreach (GameObject piece in pieces)
             {
+                piece.name = piece.GetInstanceID().ToString();
                 piece.AddComponent<MeshCollider>();
                 piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
                 piece.GetComponent<MeshCollider>().convex = true;
