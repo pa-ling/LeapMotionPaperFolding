@@ -266,15 +266,16 @@ public class BladeMovement : MonoBehaviour {
     private Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
     {
         if (bUseRadians) a *= Mathf.Rad2Deg;
-        var q = Quaternion.AngleAxis(a, axis);
+        Quaternion q = Quaternion.AngleAxis(a, axis);
         return q * v;
     }
 
     public static Vector3 NearestPointOnLine(Vector3 linePnt, Vector3 lineDir, Vector3 pnt)
     {
         lineDir.Normalize();//this needs to be a unit vector
-        var v = pnt - linePnt;
-        var d = Vector3.Dot(v, lineDir);
+        Vector3 v = pnt - linePnt;
+        float d = Vector3.Dot(v, lineDir);
+
         return linePnt + lineDir * d;
     }
 
