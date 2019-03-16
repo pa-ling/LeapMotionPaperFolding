@@ -140,18 +140,19 @@ public class BladeMovement : MonoBehaviour {
 
                     if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
                     {
-                        Debug.DrawLine(graspPoint - 0.01f * Vector3.forward, graspPoint + 0.01f * Vector3.forward, Color.red);
-                        Debug.DrawLine(graspPoint - 0.01f * Vector3.right, graspPoint + 0.01f * Vector3.right, Color.red);
+                        DebugPoint(graspPoint, Color.blue);
 
+                        Vector3 nearestRotatePos = NearestPointOnLine(rotator.position, rotator.right, graspPoint);
+                        DebugPoint(nearestRotatePos, Color.red);
 
-                        Debug.DrawRay(graspPoint, (rotator.position - graspPoint) * 10, Color.green);
-                        Debug.DrawRay(lastGraspPoint, (rotator.position - lastGraspPoint) * 10, Color.green);
+                        Debug.DrawRay(graspPoint, (nearestRotatePos - graspPoint) * 10, Color.green);
+                        Debug.DrawRay(lastGraspPoint, (nearestRotatePos - lastGraspPoint) * 10, Color.green);
 
-                        Vector3 normal = RotateAroundAxis(Vector3.Normalize(rotator.position - graspPoint), 90, rotObj.up);
+                        Vector3 normal = RotateAroundAxis(Vector3.Normalize(nearestRotatePos - graspPoint), 90, rotObj.up);
 
                         Debug.DrawRay(lastGraspPoint, normal, Color.magenta);
 
-                        float rotateAngle = Vector3.SignedAngle(rotator.position - lastGraspPoint, rotator.position - graspPoint, normal);
+                        float rotateAngle = Vector3.SignedAngle(nearestRotatePos - lastGraspPoint, nearestRotatePos - graspPoint, normal);
                         rotator.Rotate(rotator.right, rotateAngle, Space.World);
                     }
 
@@ -256,11 +257,25 @@ public class BladeMovement : MonoBehaviour {
         Debug.DrawRay(origin, Vector3.Normalize(destination - origin) * Vector3.Distance(origin, destination), color, 0, true);
     }
 
+    private void DebugPoint(Vector3 point, Color color)
+    {
+        Debug.DrawLine(point - 0.01f * Vector3.forward, point + 0.01f * Vector3.forward, color);
+        Debug.DrawLine(point - 0.01f * Vector3.right, point + 0.01f * Vector3.right, color);
+    }
+
     private Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
     {
         if (bUseRadians) a *= Mathf.Rad2Deg;
         var q = Quaternion.AngleAxis(a, axis);
         return q * v;
+    }
+
+    public static Vector3 NearestPointOnLine(Vector3 linePnt, Vector3 lineDir, Vector3 pnt)
+    {
+        lineDir.Normalize();//this needs to be a unit vector
+        var v = pnt - linePnt;
+        var d = Vector3.Dot(v, lineDir);
+        return linePnt + lineDir * d;
     }
 
     private int BoolToInt (bool value)

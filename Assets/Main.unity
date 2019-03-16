@@ -177,7 +177,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &93988975
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -415,8 +415,8 @@ MonoBehaviour:
     _values:
     - {fileID: 15244172}
     - {fileID: 1855276864}
-  hoverActivationRadius: 0.2
-  touchActivationRadius: 0.15
+  hoverActivationRadius: 0.3
+  touchActivationRadius: 0.25
   _autoGenerateLayers: 1
   _templateLayer:
     layerIndex: 0
