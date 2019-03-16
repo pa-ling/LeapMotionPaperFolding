@@ -18,6 +18,7 @@ public class BladeMovement : MonoBehaviour {
 
     private GameObject verticalLaser;
     private List<Transform> rotatingObjects;
+    private Vector3[] lastGraspPoints;
 
     private void Start()
     { 
@@ -25,6 +26,9 @@ public class BladeMovement : MonoBehaviour {
         verticalLaser.name = "Vertical Laser";
 
         rotatingObjects = new List<Transform>();
+        lastGraspPoints = new Vector3[2];
+        lastGraspPoints[0] = Vector3.negativeInfinity;
+        lastGraspPoints[1] = Vector3.negativeInfinity;
 
         leftInteractionHand.OnGraspBegin += OnGraspBegin;
         rightInteractionHand.OnGraspBegin += OnGraspBegin;
@@ -37,7 +41,7 @@ public class BladeMovement : MonoBehaviour {
 
     private IEnumerator MakeCuts()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 1; i++)
         {
             Cut();
             this.transform.Rotate(new Vector3(0, 0, 1), 45);
@@ -125,10 +129,34 @@ public class BladeMovement : MonoBehaviour {
         for (int i = 0; i < rotatingObjects.Count; i++)
         {
             Transform rotObj = rotatingObjects[i];
+            InteractionBehaviour rotObjBehaviour = rotObj.GetComponent<InteractionBehaviour>();
             Transform rotator = rotObj.parent;
-            if (rotObj.GetComponent<InteractionBehaviour>().isGrasped)
+            if (rotObjBehaviour.isGrasped)
             {
-                rotator.Rotate(rotator.right, 0.5f, Space.World);
+                if (rotObjBehaviour.graspingHands.Contains(hand))
+                {
+                    Vector3 graspPoint = rotObjBehaviour.GetGraspPoint(hand);
+                    Vector3 lastGraspPoint = lastGraspPoints[BoolToInt(hand.leapHand.IsLeft)];
+
+                    if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
+                    {
+                        Debug.DrawLine(graspPoint - 0.01f * Vector3.forward, graspPoint + 0.01f * Vector3.forward, Color.red);
+                        Debug.DrawLine(graspPoint - 0.01f * Vector3.right, graspPoint + 0.01f * Vector3.right, Color.red);
+
+
+                        Debug.DrawRay(graspPoint, (rotator.position - graspPoint) * 10, Color.green);
+                        Debug.DrawRay(lastGraspPoint, (rotator.position - lastGraspPoint) * 10, Color.green);
+
+                        Vector3 normal = RotateAroundAxis(Vector3.Normalize(rotator.position - graspPoint), 90, rotObj.up);
+
+                        Debug.DrawRay(lastGraspPoint, normal, Color.magenta);
+
+                        float rotateAngle = Vector3.SignedAngle(rotator.position - lastGraspPoint, rotator.position - graspPoint, normal);
+                        rotator.Rotate(rotator.right, rotateAngle, Space.World);
+                    }
+
+                    lastGraspPoints[BoolToInt(hand.leapHand.IsLeft)] = graspPoint;
+                }
             }
             else
             {
@@ -136,6 +164,7 @@ public class BladeMovement : MonoBehaviour {
                 i--;
                 rotObj.SetParent(GameObject.Find("Paper").transform);
                 rotator.SetParent(rotObj);
+                lastGraspPoints[BoolToInt(hand.leapHand.IsLeft)] = Vector3.negativeInfinity;
             }
         }
     }
@@ -152,6 +181,7 @@ public class BladeMovement : MonoBehaviour {
 
     private void Cut()
     {
+        Debug.Log("Cut");
         RaycastHit[] hits = Physics.BoxCastAll(
             GetComponent<Collider>().bounds.center,
             this.transform.localScale, this.transform.forward,
@@ -226,11 +256,18 @@ public class BladeMovement : MonoBehaviour {
         Debug.DrawRay(origin, Vector3.Normalize(destination - origin) * Vector3.Distance(origin, destination), color, 0, true);
     }
 
-    private static Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
+    private Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
     {
         if (bUseRadians) a *= Mathf.Rad2Deg;
         var q = Quaternion.AngleAxis(a, axis);
         return q * v;
+    }
+
+    private int BoolToInt (bool value)
+    {
+        if (value)
+            return 1;
+        return 0;
     }
 
     private void OnDrawGizmos()
