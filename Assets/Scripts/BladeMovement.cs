@@ -116,19 +116,28 @@ public class BladeMovement : MonoBehaviour {
     {
         if (obj.Equals(hand.graspedObject) && obj.transform.childCount != 0 && !rotatingObjects.Contains(obj.transform))
         {
-            rotatingObjects.Add(obj.transform);
             Transform firstChild = obj.transform.GetChild(0);
             firstChild.SetParent(null);
             obj.transform.SetParent(firstChild);
+            rotatingObjects.Add(obj.transform);
         }
 
-        foreach (Transform rotObj in rotatingObjects)
+        for (int i = 0; i < rotatingObjects.Count; i++)
         {
+            Transform rotObj = rotatingObjects[i];
             Transform rotator = rotObj.parent;
-            rotator.Rotate(rotator.right, 0.5f, Space.World);
+            if (rotObj.GetComponent<InteractionBehaviour>().isGrasped)
+            {
+                rotator.Rotate(rotator.right, 0.5f, Space.World);
+            }
+            else
+            {
+                rotatingObjects.Remove(rotObj);
+                i--;
+                rotObj.SetParent(GameObject.Find("Paper").transform);
+                rotator.SetParent(rotObj);
+            }
         }
-
-        //TODO: Remove object from rotatingobjects and put markers as child of it
     }
 
     private void OnLeftPrimaryHover(InteractionBehaviour obj)
@@ -161,22 +170,26 @@ public class BladeMovement : MonoBehaviour {
             victim.transform.DetachChildren();
 
             GameObject[] pieces = MeshCut.Cut(victim, this.transform.position, this.transform.right, victim.GetComponent<MeshRenderer>().material);
-            pieces[0].transform.position += 0.0004f * transform.right;
-            pieces[1].transform.position -= 0.0004f * transform.right;
+            pieces[0].transform.position += 0.00015f * transform.right;
+            pieces[1].transform.position -= 0.00015f * transform.right;
 
             foreach (GameObject piece in pieces)
             {
                 AddNecessaryComponents(piece);
+
                 GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
                 cutMarker.SetActive(true);
-                cutMarker.name = "Cut";
+                cutMarker.name = piece.GetInstanceID().ToString() + "/" + cutMarker.GetInstanceID().ToString();
+                cutMarker.tag = "Cut";
                 cutMarker.transform.forward = this.transform.right;
                 cutMarker.transform.SetParent(piece.transform);
+
                 foreach (Transform child in children)
                 {
                     GameObject dup = Instantiate(markerPrefab, child.transform.position, child.transform.rotation);
                     dup.SetActive(true);
-                    dup.name = "Cut";
+                    dup.name = piece.GetInstanceID().ToString() + "/" + dup.GetInstanceID().ToString();
+                    dup.tag = "Cut";
                     dup.transform.SetParent(piece.transform);
                 }
             }
@@ -185,7 +198,6 @@ public class BladeMovement : MonoBehaviour {
             {
                 Destroy(child.gameObject);
             }
-
         }
     }
 
