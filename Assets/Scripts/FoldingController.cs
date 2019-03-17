@@ -4,7 +4,7 @@ using UnityEngine;
 using Leap.Unity;
 using Leap.Unity.Interaction;
 
-public class BladeMovement : MonoBehaviour {
+public class FoldingController : MonoBehaviour {
 
     private const int PAPER_LAYER_MASK = ~(1 << 2);
 
@@ -132,51 +132,40 @@ public class BladeMovement : MonoBehaviour {
         {
             GameObject victim = hit.collider.gameObject;
             RemoveRotatingObject(victim.transform);
-            List<Transform> children = new List<Transform>();
+            List<Transform> rotators = new List<Transform>();
             foreach (Transform child in victim.transform)
             {
-                children.Add(child);
+                rotators.Add(child);
             }
             victim.transform.DetachChildren();
 
             GameObject[] pieces = MeshCut.Cut(victim, this.transform.position, this.transform.right, victim.GetComponent<MeshRenderer>().material);
+
             pieces[0].transform.position += 0.00015f * transform.right;
+            ConfigurePiece(pieces[0], true, rotators, hit.point);
+
             pieces[1].transform.position -= 0.00015f * transform.right;
+            ConfigurePiece(pieces[1], false, rotators, hit.point);
 
-            foreach (GameObject piece in pieces)
-            {
-                AddNecessaryComponents(piece);
-
-                // Create rotator marker for each piece
-                GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
-                cutMarker.SetActive(true);
-                cutMarker.name = piece.GetInstanceID().ToString() + "/" + cutMarker.GetInstanceID().ToString();
-                cutMarker.tag = "Cut";
-                cutMarker.transform.forward = this.transform.right;
-                cutMarker.transform.SetParent(piece.transform);
-
-                // Duplicate each rotator of parent to the children
-                foreach (Transform child in children)
-                {
-                    GameObject dup = Instantiate(markerPrefab, child.transform.position, child.transform.rotation);
-                    dup.SetActive(true);
-                    dup.name = piece.GetInstanceID().ToString() + "/" + dup.GetInstanceID().ToString();
-                    dup.tag = "Cut";
-                    dup.transform.SetParent(piece.transform);
-                }
-            }
-
-            foreach (Transform child in children)
+            foreach (Transform child in rotators)
             {
                 Destroy(child.gameObject);
             }
         }
     }
 
-    private void AddNecessaryComponents(GameObject piece)
+    private void ConfigurePiece(GameObject piece, bool isLeft, List<Transform> ancestorChildren, Vector3 hitPoint)
     {
-        piece.name = piece.GetInstanceID().ToString();
+        // General info
+        string prefix = "R";
+        if (isLeft)
+        {
+            prefix = "L";
+        }
+        piece.name = prefix + piece.GetInstanceID();
         piece.tag = "Paper";
+
+        // Physics components
         piece.AddComponent<MeshCollider>();
         piece.GetComponent<MeshCollider>().sharedMesh = piece.GetComponent<MeshFilter>().mesh;
         piece.GetComponent<MeshCollider>().convex = true;
@@ -185,12 +174,38 @@ public class BladeMovement : MonoBehaviour {
         rb.useGravity = false;
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ |
             RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezePositionZ;
+
+        // Leap Motion components
         piece.AddComponent<InteractionBehaviour>();
         InteractionBehaviour ib = piece.GetComponent<InteractionBehaviour>();
         ib.ignoreContact = true;
         ib.moveObjectWhenGrasped = false;
         ib.allowMultiGrasp = true;
         piece.AddComponent<InteractionGlow>();
+
+        // Create rotator marker
+        GameObject cutMarker = Instantiate(markerPrefab, hitPoint, Quaternion.identity);
+        cutMarker.SetActive(true);
+        cutMarker.name = piece.GetInstanceID().ToString() + "/" + cutMarker.GetInstanceID().ToString();
+        cutMarker.tag = "Cut";
+        if (isLeft)
+        {
+            cutMarker.transform.forward = -this.transform.right;
+        } else
+        {
+            cutMarker.transform.forward = this.transform.right;
+        }
+        cutMarker.transform.SetParent(piece.transform);
+
+        // Duplicate each previous rotator of parent to this object
+        foreach (Transform child in ancestorChildren)
+        {
+            GameObject dup = Instantiate(markerPrefab, child.transform.position, child.transform.rotation);
+            dup.SetActive(true);
+            dup.name = piece.GetInstanceID().ToString() + "/" + dup.GetInstanceID().ToString();
+            dup.tag = "Cut";
+            dup.transform.SetParent(piece.transform);
+        }
     }
 
     // Rotating
