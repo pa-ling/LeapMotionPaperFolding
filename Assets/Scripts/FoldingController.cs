@@ -293,10 +293,9 @@ public class FoldingController : MonoBehaviour {
         obj.SetParent(GameObject.Find("Paper").transform);
         rotator.SetParent(obj);
 
-        foreach(InteractionHand hand in obj.GetComponent<InteractionBehaviour>().graspingHands)
-        {
-            lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = Vector3.negativeInfinity;
-        }
+        //TODO: only reset point of the actual hand(s)
+        lastGraspPoints[0] = Vector3.negativeInfinity;
+        lastGraspPoints[1] = Vector3.negativeInfinity;
     }
 
     private void OnDrawGizmos()
