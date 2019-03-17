@@ -192,6 +192,7 @@ public class BladeMovement : MonoBehaviour {
         foreach (RaycastHit hit in hits)
         {
             GameObject victim = hit.collider.gameObject;
+            RemoveRotatingObject(victim.transform);
             List<Transform> children = new List<Transform>();
             foreach (Transform child in victim.transform)
             {
