@@ -74,15 +74,15 @@ public class BladeMovement : MonoBehaviour {
         Vector3 midThumbTipPos = Vector3.Lerp(leftThumbTipPos, rightThumbTipPos, .5f);
         Vector3 midIndexTipPos = Vector3.Lerp(leftIndexTipPos, rightIndexTipPos, .5f);
 
-        Vector3 frontDirection = RotateAroundAxis(Vector3.Normalize(leftThumbTipPos - rightThumbTipPos), 90, new Vector3(0, 1, 0));
+        Vector3 frontDirection = Util.RotateAroundAxis(Vector3.Normalize(leftThumbTipPos - rightThumbTipPos), 90, new Vector3(0, 1, 0));
         Vector3 frontThumbMidPos = midThumbTipPos + frontDirection * 0.001f;
         Vector3 frontIndexMidPos = midIndexTipPos + frontDirection * 0.001f;
 
         #region debug
-        DebugRay(leftThumbTipPos, rightThumbTipPos, Color.green);
-        DebugRay(leftIndexTipPos, rightIndexTipPos, Color.green);
-        DebugRay(midThumbTipPos, midIndexTipPos, Color.yellow);
-        DebugRay(frontThumbMidPos, frontIndexMidPos, Color.red);
+        Util.DebugRay(leftThumbTipPos, rightThumbTipPos, Color.green);
+        Util.DebugRay(leftIndexTipPos, rightIndexTipPos, Color.green);
+        Util.DebugRay(midThumbTipPos, midIndexTipPos, Color.yellow);
+        Util.DebugRay(frontThumbMidPos, frontIndexMidPos, Color.red);
         #endregion debug
 
         RaycastHit midHit, frontHit;
@@ -120,12 +120,14 @@ public class BladeMovement : MonoBehaviour {
     {
         if (obj.Equals(hand.graspedObject) && obj.transform.childCount != 0 && !rotatingObjects.Contains(obj.transform))
         {
-            Transform firstChild = obj.transform.GetChild(0);
-            firstChild.SetParent(null);
-            obj.transform.SetParent(firstChild);
-            rotatingObjects.Add(obj.transform);
+            AddRotatingObject(obj.transform);
         }
 
+        HandleRotatingObjects(hand);
+    }
+
+    private void HandleRotatingObjects(InteractionHand hand)
+    {
         for (int i = 0; i < rotatingObjects.Count; i++)
         {
             Transform rotObj = rotatingObjects[i];
@@ -136,19 +138,19 @@ public class BladeMovement : MonoBehaviour {
                 if (rotObjBehaviour.graspingHands.Contains(hand))
                 {
                     Vector3 graspPoint = rotObjBehaviour.GetGraspPoint(hand);
-                    Vector3 lastGraspPoint = lastGraspPoints[BoolToInt(hand.leapHand.IsLeft)];
+                    Vector3 lastGraspPoint = lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)];
 
                     if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
                     {
-                        DebugPoint(graspPoint, Color.blue);
+                        Util.DebugPoint(graspPoint, Color.blue);
 
-                        Vector3 nearestRotatePos = NearestPointOnLine(rotator.position, rotator.right, graspPoint);
-                        DebugPoint(nearestRotatePos, Color.red);
+                        Vector3 nearestRotatePos = Util.NearestPointOnLine(rotator.position, rotator.right, graspPoint);
+                        Util.DebugPoint(nearestRotatePos, Color.red);
 
                         Debug.DrawRay(graspPoint, (nearestRotatePos - graspPoint) * 10, Color.green);
                         Debug.DrawRay(lastGraspPoint, (nearestRotatePos - lastGraspPoint) * 10, Color.green);
 
-                        Vector3 normal = RotateAroundAxis(Vector3.Normalize(nearestRotatePos - graspPoint), 90, rotObj.up);
+                        Vector3 normal = Util.RotateAroundAxis(Vector3.Normalize(nearestRotatePos - graspPoint), 90, rotObj.up);
 
                         Debug.DrawRay(lastGraspPoint, normal, Color.magenta);
 
@@ -156,16 +158,13 @@ public class BladeMovement : MonoBehaviour {
                         rotator.Rotate(rotator.right, rotateAngle, Space.World);
                     }
 
-                    lastGraspPoints[BoolToInt(hand.leapHand.IsLeft)] = graspPoint;
+                    lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = graspPoint;
                 }
             }
             else
             {
-                rotatingObjects.Remove(rotObj);
+                RemoveRotatingObject(rotObj);
                 i--;
-                rotObj.SetParent(GameObject.Find("Paper").transform);
-                rotator.SetParent(rotObj);
-                lastGraspPoints[BoolToInt(hand.leapHand.IsLeft)] = Vector3.negativeInfinity;
             }
         }
     }
@@ -208,6 +207,7 @@ public class BladeMovement : MonoBehaviour {
             {
                 AddNecessaryComponents(piece);
 
+                // Create rotator marker for each piece
                 GameObject cutMarker = Instantiate(markerPrefab, hit.point, Quaternion.identity);
                 cutMarker.SetActive(true);
                 cutMarker.name = piece.GetInstanceID().ToString() + "/" + cutMarker.GetInstanceID().ToString();
@@ -215,6 +215,7 @@ public class BladeMovement : MonoBehaviour {
                 cutMarker.transform.forward = this.transform.right;
                 cutMarker.transform.SetParent(piece.transform);
 
+                // Duplicate each rotator of parent to the children
                 foreach (Transform child in children)
                 {
                     GameObject dup = Instantiate(markerPrefab, child.transform.position, child.transform.rotation);
@@ -252,38 +253,30 @@ public class BladeMovement : MonoBehaviour {
         piece.AddComponent<InteractionGlow>();
     }
 
-    private void DebugRay(Vector3 origin, Vector3 destination, Color color)
+    private void AddRotatingObject(Transform obj)
     {
-        Debug.DrawRay(origin, Vector3.Normalize(destination - origin) * Vector3.Distance(origin, destination), color, 0, true);
+        Transform rotator = obj.GetChild(0);
+        rotator.SetParent(null);
+        obj.SetParent(rotator);
+        rotatingObjects.Add(obj);
     }
 
-    private void DebugPoint(Vector3 point, Color color)
+    private void RemoveRotatingObject(Transform obj)
     {
-        Debug.DrawLine(point - 0.01f * Vector3.forward, point + 0.01f * Vector3.forward, color);
-        Debug.DrawLine(point - 0.01f * Vector3.right, point + 0.01f * Vector3.right, color);
-    }
+        if (!rotatingObjects.Contains(obj))
+        {
+            return;
+        }
 
-    private Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
-    {
-        if (bUseRadians) a *= Mathf.Rad2Deg;
-        Quaternion q = Quaternion.AngleAxis(a, axis);
-        return q * v;
-    }
+        Transform rotator = obj.parent;
+        rotatingObjects.Remove(obj);
+        obj.SetParent(GameObject.Find("Paper").transform);
+        rotator.SetParent(obj);
 
-    public static Vector3 NearestPointOnLine(Vector3 linePnt, Vector3 lineDir, Vector3 pnt)
-    {
-        lineDir.Normalize();//this needs to be a unit vector
-        Vector3 v = pnt - linePnt;
-        float d = Vector3.Dot(v, lineDir);
-
-        return linePnt + lineDir * d;
-    }
-
-    private int BoolToInt (bool value)
-    {
-        if (value)
-            return 1;
-        return 0;
+        foreach(InteractionHand hand in obj.GetComponent<InteractionBehaviour>().graspingHands)
+        {
+            lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = Vector3.negativeInfinity;
+        }
     }
 
     private void OnDrawGizmos()
@@ -299,4 +292,5 @@ public class BladeMovement : MonoBehaviour {
         Gizmos.DrawLine(arrowEnd, arrowLeft);
         Gizmos.DrawLine(arrowEnd, arrowRight);
     }
+
 }
