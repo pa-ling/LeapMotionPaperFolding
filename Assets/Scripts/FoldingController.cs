@@ -222,10 +222,14 @@ public class FoldingController : MonoBehaviour {
 
     private void OnPrimaryHover(InteractionHand hand, InteractionBehaviour obj)
     {
-        if (obj.Equals(hand.graspedObject) && obj.transform.childCount != 0 && !rotatingObjects.Contains(obj.transform))
+        if (obj.Equals(hand.graspedObject) && obj.transform.childCount > 0 && !rotatingObjects.Contains(obj.transform))
         {
             //TODO: Choose the correct rotator/child instead of just taking the first one
             AddRotatingObject(obj.transform, obj.transform.GetChild(0));
+        }
+        else if (!obj.Equals(hand.graspedObject) && rotatingObjects.Contains(obj.transform))
+        {
+            RemoveRotatingObject(obj.transform);
         }
 
         HandleRotatingObjects(hand);
@@ -238,39 +242,32 @@ public class FoldingController : MonoBehaviour {
             Transform rotObj = rotatingObjects[i];
             InteractionBehaviour rotObjBehaviour = rotObj.GetComponent<InteractionBehaviour>();
             Transform rotator = rotObj.parent;
-            if (rotObjBehaviour.isGrasped)
+            if (rotObjBehaviour.isGrasped && rotObjBehaviour.graspingHands.Contains(hand))
             {
-                if (rotObjBehaviour.graspingHands.Contains(hand))
+                Vector3 graspPoint = rotObjBehaviour.GetGraspPoint(hand);
+                Vector3 lastGraspPoint = lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)];
+
+                if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
                 {
-                    Vector3 graspPoint = rotObjBehaviour.GetGraspPoint(hand);
-                    Vector3 lastGraspPoint = lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)];
+                    Util.DebugPoint(graspPoint, Color.blue);
 
-                    if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
-                    {
-                        Util.DebugPoint(graspPoint, Color.blue);
+                    Vector3 nearestRotatePos = Util.NearestPointOnLine(rotator.position, rotator.right, graspPoint);
+                    Util.DebugPoint(nearestRotatePos, Color.red);
 
-                        Vector3 nearestRotatePos = Util.NearestPointOnLine(rotator.position, rotator.right, graspPoint);
-                        Util.DebugPoint(nearestRotatePos, Color.red);
+                    Debug.DrawRay(graspPoint, (nearestRotatePos - graspPoint) * 10, Color.green);
+                    Debug.DrawRay(lastGraspPoint, (nearestRotatePos - lastGraspPoint) * 10, Color.green);
 
-                        Debug.DrawRay(graspPoint, (nearestRotatePos - graspPoint) * 10, Color.green);
-                        Debug.DrawRay(lastGraspPoint, (nearestRotatePos - lastGraspPoint) * 10, Color.green);
+                    Vector3 normal = Util.RotateAroundAxis(Vector3.Normalize(nearestRotatePos - graspPoint), 90, rotObj.up);
 
-                        Vector3 normal = Util.RotateAroundAxis(Vector3.Normalize(nearestRotatePos - graspPoint), 90, rotObj.up);
+                    Debug.DrawRay(lastGraspPoint, normal, Color.magenta);
 
-                        Debug.DrawRay(lastGraspPoint, normal, Color.magenta);
-
-                        float rotateAngle = Vector3.SignedAngle(nearestRotatePos - lastGraspPoint, nearestRotatePos - graspPoint, normal);
-                        rotator.Rotate(rotator.right, rotateAngle, Space.World);
-                    }
-
-                    lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = graspPoint;
+                    float rotateAngle = Vector3.SignedAngle(nearestRotatePos - lastGraspPoint, nearestRotatePos - graspPoint, normal);
+                    rotator.Rotate(rotator.right, rotateAngle, Space.World);
                 }
+
+                lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = graspPoint;
             }
-            else
-            {
-                RemoveRotatingObject(rotObj);
-                i--;
-            }
+            
         }
     }
 
