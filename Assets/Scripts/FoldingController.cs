@@ -224,7 +224,8 @@ public class FoldingController : MonoBehaviour {
     {
         if (obj.Equals(hand.graspedObject) && obj.transform.childCount != 0 && !rotatingObjects.Contains(obj.transform))
         {
-            AddRotatingObject(obj.transform);
+            //TODO: Choose the correct rotator/child instead of just taking the first one
+            AddRotatingObject(obj.transform, obj.transform.GetChild(0));
         }
 
         HandleRotatingObjects(hand);
@@ -273,9 +274,8 @@ public class FoldingController : MonoBehaviour {
         }
     }
 
-    private void AddRotatingObject(Transform obj)
+    private void AddRotatingObject(Transform obj, Transform rotator)
     {
-        Transform rotator = obj.GetChild(0);
         rotator.SetParent(null);
         obj.SetParent(rotator);
         rotatingObjects.Add(obj);
