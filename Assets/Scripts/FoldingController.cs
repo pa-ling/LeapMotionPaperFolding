@@ -41,7 +41,7 @@ public class FoldingController : MonoBehaviour {
 
     private IEnumerator MakeCuts()
     {
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 2; i++)
         {
             Cut();
             this.transform.Rotate(new Vector3(0, 0, 1), 45);
@@ -184,27 +184,33 @@ public class FoldingController : MonoBehaviour {
         piece.AddComponent<InteractionGlow>();
 
         // Create rotator marker
-        GameObject cutMarker = Instantiate(markerPrefab, hitPoint, Quaternion.identity);
-        cutMarker.SetActive(true);
-        cutMarker.name = piece.GetInstanceID().ToString() + "/" + cutMarker.GetInstanceID().ToString();
-        cutMarker.tag = "Cut";
-        if (isLeft)
-        {
-            cutMarker.transform.forward = -this.transform.right;
-        } else
-        {
-            cutMarker.transform.forward = this.transform.right;
-        }
+        GameObject cutMarker = Instantiate(markerPrefab);
+        if (isLeft) cutMarker.transform.forward = -this.transform.right;
+        else cutMarker.transform.forward = this.transform.right;
+
+        Vector3 centeredRotatorPos = Util.NearestPointOnLine(hitPoint, cutMarker.transform.right, piece.transform.TransformPoint(piece.GetComponent<Rigidbody>().centerOfMass));
+        cutMarker.transform.position = centeredRotatorPos;
         cutMarker.transform.SetParent(piece.transform);
+        cutMarker.name = piece.name + "/" + cutMarker.GetInstanceID().ToString();
+        cutMarker.tag = "Cut";
+        cutMarker.SetActive(true);
 
         // Duplicate each previous rotator of parent to this object
         foreach (Transform child in ancestorChildren)
         {
-            GameObject dup = Instantiate(markerPrefab, child.transform.position, child.transform.rotation);
-            dup.SetActive(true);
-            dup.name = piece.GetInstanceID().ToString() + "/" + dup.GetInstanceID().ToString();
+            centeredRotatorPos = Util.NearestPointOnLine(child.position, child.right, piece.transform.TransformPoint(piece.GetComponent<Rigidbody>().centerOfMass));
+            Collider[] hitColliders = Physics.OverlapSphere(centeredRotatorPos, 0.01f);
+
+            if (!Util.Contains(hitColliders, piece.GetComponent<MeshCollider>()))
+            {
+                continue;
+            }
+
+            GameObject dup = Instantiate(markerPrefab, centeredRotatorPos, child.rotation);
+            dup.name = piece.name + "/" + dup.GetInstanceID().ToString();
             dup.tag = "Cut";
             dup.transform.SetParent(piece.transform);
+            dup.SetActive(true);
         }
     }
 

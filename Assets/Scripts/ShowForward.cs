@@ -7,9 +7,20 @@ public class ShowForward : MonoBehaviour {
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-
-        Gizmos.DrawRay(transform.position + transform.up * 0.005f, transform.forward * 0.05f);
-        Gizmos.DrawSphere(transform.position + transform.forward * 0.05f + transform.up * 0.005f, 0.005f);
+        DrawGizmos();
     }
 
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        DrawGizmos();
+    }
+
+    private void DrawGizmos()
+    {
+        Gizmos.DrawCube(transform.position, new Vector3(0.01f, 0.01f, 0.01f));
+        Gizmos.DrawRay(transform.position, transform.forward * 0.05f);
+        Gizmos.DrawSphere(transform.position + transform.forward * 0.05f, 0.005f);
+    }
 }

@@ -38,4 +38,16 @@ public static class Util {
         return 0;
     }
 
+    public static bool Contains<T>(T[] array, T element)
+    {
+        for (int i = 0; i < array.Length; i++)
+        {
+            if (array[i].Equals(element))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
