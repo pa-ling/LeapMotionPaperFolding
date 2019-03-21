@@ -94,7 +94,7 @@ public class FoldingController : MonoBehaviour {
             verticalLaser.transform.position = midHit.point;
             verticalLaser.transform.LookAt(frontHit.point);
             verticalLaser.transform.rotation *= midHit.collider.gameObject.transform.rotation;
-            verticalLaser.transform.localScale = new Vector3(verticalLaser.transform.localScale.x, verticalLaser.transform.localScale.y, Vector3.Distance(leftIndexTipPos, rightIndexTipPos));
+            verticalLaser.transform.localScale = new Vector3(verticalLaser.transform.localScale.x, verticalLaser.transform.localScale.y, Vector3.Distance(leftIndexTipPos, rightIndexTipPos) * 1.5f);
             verticalLaser.SetActive(true);
 
             this.transform.position = verticalLaser.transform.position + verticalLaser.transform.up;
@@ -230,8 +230,32 @@ public class FoldingController : MonoBehaviour {
     {
         if (obj.Equals(hand.graspedObject) && obj.transform.childCount > 0 && !rotatingObjects.Contains(obj.transform))
         {
-            //TODO: Choose the correct rotator/child instead of just taking the first one
-            AddRotatingObject(obj.transform, obj.transform.GetChild(0));
+            Vector3 graspPoint = hand.GetGraspPoint();
+            Vector3 lastGraspPoint = lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)];
+            Transform rotObj = obj.transform;
+
+            if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
+            {
+                Transform rotatorInUse = null;
+                float minAngle = 180;
+                string debugOutput = "";
+                foreach (Transform rotator in rotObj.GetChildren())
+                {
+                    Vector3 movement = lastGraspPoint - graspPoint;
+                    float difference = Vector3.Angle(rotator.forward, movement);
+                    if (rotatorInUse == null || difference < minAngle)
+                    {
+                        rotatorInUse = rotator;
+                        minAngle = difference;
+                    }
+                    debugOutput += rotator.name + ": " + difference + "; ";
+                }
+                Debug.Log(debugOutput);
+                AddRotatingObject(obj.transform, rotatorInUse);
+            } else
+            {
+                lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = graspPoint;
+            }
         }
         else if (!obj.Equals(hand.graspedObject) && rotatingObjects.Contains(obj.transform))
         {
@@ -255,20 +279,19 @@ public class FoldingController : MonoBehaviour {
 
                 if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
                 {
-                    Util.DebugPoint(graspPoint, Color.blue);
-
                     Vector3 nearestRotatePos = Util.NearestPointOnLine(rotator.position, rotator.right, graspPoint);
-                    Util.DebugPoint(nearestRotatePos, Color.red);
-
-                    Debug.DrawRay(graspPoint, (nearestRotatePos - graspPoint) * 10, Color.green);
-                    Debug.DrawRay(lastGraspPoint, (nearestRotatePos - lastGraspPoint) * 10, Color.green);
-
                     Vector3 normal = Util.RotateAroundAxis(Vector3.Normalize(nearestRotatePos - graspPoint), 90, rotObj.up);
-
-                    Debug.DrawRay(lastGraspPoint, normal, Color.magenta);
 
                     float rotateAngle = Vector3.SignedAngle(nearestRotatePos - lastGraspPoint, nearestRotatePos - graspPoint, normal);
                     rotator.Rotate(rotator.right, rotateAngle, Space.World);
+
+                    #region debug
+                    Util.DebugPoint(graspPoint, Color.blue);
+                    Util.DebugPoint(nearestRotatePos, Color.red);
+                    Debug.DrawRay(graspPoint, (nearestRotatePos - graspPoint) * 10, Color.green);
+                    Debug.DrawRay(lastGraspPoint, (nearestRotatePos - lastGraspPoint) * 10, Color.green);
+                    Debug.DrawRay(lastGraspPoint, normal, Color.magenta);
+                    #endregion debug
                 }
 
                 lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = graspPoint;
@@ -279,6 +302,10 @@ public class FoldingController : MonoBehaviour {
 
     private void AddRotatingObject(Transform obj, Transform rotator)
     {
+        if (rotatingObjects.Contains(obj))
+        {
+            return;
+        }
         rotator.SetParent(null);
         obj.SetParent(rotator);
         rotatingObjects.Add(obj);
