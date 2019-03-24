@@ -79,10 +79,10 @@ public class FoldingController : MonoBehaviour {
         Vector3 frontIndexMidPos = midIndexTipPos + frontDirection * 0.001f;
 
         #region debug
-        Util.DebugRay(leftThumbTipPos, rightThumbTipPos, Color.green);
-        Util.DebugRay(leftIndexTipPos, rightIndexTipPos, Color.green);
-        Util.DebugRay(midThumbTipPos, midIndexTipPos, Color.yellow);
-        Util.DebugRay(frontThumbMidPos, frontIndexMidPos, Color.red);
+        Debug.DrawLine(leftThumbTipPos, rightThumbTipPos, Color.green);
+        Debug.DrawLine(leftIndexTipPos, rightIndexTipPos, Color.green);
+        Debug.DrawLine(midThumbTipPos, midIndexTipPos, Color.yellow);
+        Debug.DrawLine(frontThumbMidPos, frontIndexMidPos, Color.red);
         #endregion debug
 
         RaycastHit midHit, frontHit;
@@ -234,7 +234,7 @@ public class FoldingController : MonoBehaviour {
             Vector3 lastGraspPoint = lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)];
             Transform rotObj = obj.transform;
 
-            Debug.Log(lastGraspPoint + " <-> " + graspPoint + " = " + Vector3.Distance(lastGraspPoint, graspPoint));
+            //Debug.Log(lastGraspPoint + " <-> " + graspPoint + " = " + Vector3.Distance(lastGraspPoint, graspPoint));
 
             if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
             {
@@ -252,7 +252,24 @@ public class FoldingController : MonoBehaviour {
                             minAngle = difference;
                         }
                     }
-                    AddRotatingObject(obj.transform, rotatorInUse);
+
+                    Debug.Log("normal: " + rotatorInUse.forward);
+                    Plane axis = new Plane(rotatorInUse.forward, rotatorInUse.transform.position);
+                    Debug.DrawRay(rotatorInUse.transform.position, rotatorInUse.forward, Color.yellow, 60);
+
+                    GameObject[] paperPieces = GameObject.FindGameObjectsWithTag("Paper");
+                    List<Transform> sameSidePieces = new List<Transform>();
+                    foreach (GameObject paperPiece in paperPieces)
+                    {
+                        if (axis.SameSide(paperPiece.transform.position, obj.transform.TransformPoint(obj.GetComponent<Rigidbody>().centerOfMass)))
+                        {
+                            sameSidePieces.Add(paperPiece.transform);
+                        }
+                    }
+
+                    Util.DebugOutputArray<Transform>(sameSidePieces.ToArray());
+
+                    AddRotatingObject(obj.transform, sameSidePieces, rotatorInUse);
                 }
             }
             else
@@ -308,15 +325,20 @@ public class FoldingController : MonoBehaviour {
         }
     }
 
-    private void AddRotatingObject(Transform obj, Transform rotator)
+    private void AddRotatingObject(Transform mainObj, List<Transform> additionalObjs, Transform rotator)
     {
-        if (rotatingObjects.Contains(obj))
+        if (rotatingObjects.Contains(mainObj))
         {
             return;
         }
         rotator.SetParent(null);
-        obj.SetParent(rotator);
-        rotatingObjects.Add(obj);
+        mainObj.SetParent(rotator);
+        rotatingObjects.Add(mainObj);
+
+        foreach (Transform obj in additionalObjs)
+        {
+            obj.SetParent(rotator);
+        }
     }
 
     private void RemoveRotatingObject(Transform obj)
@@ -327,9 +349,25 @@ public class FoldingController : MonoBehaviour {
         }
 
         Transform rotator = obj.parent;
+        Transform paperGroup = GameObject.Find("Paper").transform;
+
         rotatingObjects.Remove(obj);
-        obj.SetParent(GameObject.Find("Paper").transform);
+        obj.SetParent(paperGroup);
         rotator.SetParent(obj);
+
+        if (rotator.childCount > 0)
+        {
+            List<Transform> children = new List<Transform>();
+            foreach (Transform child in rotator.GetChildren())
+            {
+                children.Add(child);
+            }
+
+            for (int i = 0; i < children.Count; i++)
+            {
+                children[i].SetParent(paperGroup);
+            }
+        }
     }
 
     private void OnDrawGizmos()

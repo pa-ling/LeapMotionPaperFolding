@@ -4,15 +4,24 @@ using UnityEngine;
 
 public static class Util {
 
-    public static void DebugRay(Vector3 origin, Vector3 destination, Color color)
-    {
-        Debug.DrawRay(origin, Vector3.Normalize(destination - origin) * Vector3.Distance(origin, destination), color, 0, true);
-    }
-
     public static void DebugPoint(Vector3 point, Color color)
     {
         Debug.DrawLine(point - 0.01f * Vector3.forward, point + 0.01f * Vector3.forward, color);
         Debug.DrawLine(point - 0.01f * Vector3.right, point + 0.01f * Vector3.right, color);
+    }
+
+    public static void DebugOutputArray<T>(T[] array)
+    {
+        string output = "[";
+        string delimiter = "";
+        foreach(T element in array)
+        {
+            output += delimiter + element;
+            delimiter = "; ";
+        }
+        output += "]";
+
+        Debug.Log(output);
     }
 
     public static Vector3 RotateAroundAxis(Vector3 v, float a, Vector3 axis, bool bUseRadians = false)
