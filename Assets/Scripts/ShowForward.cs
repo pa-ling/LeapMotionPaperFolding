@@ -22,5 +22,7 @@ public class ShowForward : MonoBehaviour {
         Gizmos.DrawCube(transform.position, new Vector3(0.01f, 0.01f, 0.01f));
         Gizmos.DrawRay(transform.position, transform.forward * 0.05f);
         Gizmos.DrawSphere(transform.position + transform.forward * 0.05f, 0.005f);
+
+        //Gizmos.DrawRay(transform.position, transform.forward * 0.05f + transform.up * 0.05f);
     }
 }

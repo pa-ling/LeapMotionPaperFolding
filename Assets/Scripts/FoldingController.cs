@@ -234,25 +234,28 @@ public class FoldingController : MonoBehaviour {
             Vector3 lastGraspPoint = lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)];
             Transform rotObj = obj.transform;
 
+            Debug.Log(lastGraspPoint + " <-> " + graspPoint + " = " + Vector3.Distance(lastGraspPoint, graspPoint));
+
             if (!Vector3.negativeInfinity.Equals(lastGraspPoint))
             {
-                Transform rotatorInUse = null;
-                float minAngle = 180;
-                string debugOutput = "";
-                foreach (Transform rotator in rotObj.GetChildren())
+                if (0.05f < Vector3.Distance(lastGraspPoint, graspPoint))
                 {
-                    Vector3 movement = lastGraspPoint - graspPoint;
-                    float difference = Vector3.Angle(rotator.forward, movement);
-                    if (rotatorInUse == null || difference < minAngle)
+                    Transform rotatorInUse = null;
+                    float minAngle = float.MaxValue;
+                    foreach (Transform rotator in rotObj.GetChildren())
                     {
-                        rotatorInUse = rotator;
-                        minAngle = difference;
+                        Vector3 movement = graspPoint - lastGraspPoint;
+                        float difference = Vector3.Angle(rotator.forward, movement);
+                        if (rotatorInUse == null || difference < minAngle)
+                        {
+                            rotatorInUse = rotator;
+                            minAngle = difference;
+                        }
                     }
-                    debugOutput += rotator.name + ": " + difference + "; ";
+                    AddRotatingObject(obj.transform, rotatorInUse);
                 }
-                Debug.Log(debugOutput);
-                AddRotatingObject(obj.transform, rotatorInUse);
-            } else
+            }
+            else
             {
                 lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = graspPoint;
             }
@@ -260,6 +263,11 @@ public class FoldingController : MonoBehaviour {
         else if (!obj.Equals(hand.graspedObject) && rotatingObjects.Contains(obj.transform))
         {
             RemoveRotatingObject(obj.transform);
+        }
+
+        if (!obj.Equals(hand.graspedObject))
+        {
+            lastGraspPoints[Util.BoolToInt(hand.leapHand.IsLeft)] = Vector3.negativeInfinity;
         }
 
         HandleRotatingObjects(hand);
@@ -322,10 +330,6 @@ public class FoldingController : MonoBehaviour {
         rotatingObjects.Remove(obj);
         obj.SetParent(GameObject.Find("Paper").transform);
         rotator.SetParent(obj);
-
-        //TODO: only reset point of the actual hand(s)
-        lastGraspPoints[0] = Vector3.negativeInfinity;
-        lastGraspPoints[1] = Vector3.negativeInfinity;
     }
 
     private void OnDrawGizmos()
