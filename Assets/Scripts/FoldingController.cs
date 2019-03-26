@@ -36,7 +36,7 @@ public class FoldingController : MonoBehaviour {
         leftInteractionHand.OnStayPrimaryHoveringObject += OnLeftPrimaryHover;
         rightInteractionHand.OnStayPrimaryHoveringObject += OnRightPrimaryHover;
 
-        StartCoroutine("MakeCuts");
+        //StartCoroutine("MakeCuts");
     }
 
     private IEnumerator MakeCuts()
@@ -253,21 +253,15 @@ public class FoldingController : MonoBehaviour {
                         }
                     }
 
-                    Debug.Log("normal: " + rotatorInUse.forward);
-                    Plane axis = new Plane(rotatorInUse.forward, rotatorInUse.transform.position);
-                    Debug.DrawRay(rotatorInUse.transform.position, rotatorInUse.forward, Color.yellow, 60);
+                    Collider[] colliders = Physics.OverlapBox(rotatorInUse.position - 0.51f * rotatorInUse.forward, new Vector3(0.5f, 0.01f, 0.5f), rotatorInUse.rotation, PAPER_LAYER_MASK);
 
-                    GameObject[] paperPieces = GameObject.FindGameObjectsWithTag("Paper");
                     List<Transform> sameSidePieces = new List<Transform>();
-                    foreach (GameObject paperPiece in paperPieces)
+                    foreach (Collider collider in colliders)
                     {
-                        if (axis.SameSide(paperPiece.transform.position, obj.transform.TransformPoint(obj.GetComponent<Rigidbody>().centerOfMass)))
-                        {
-                            sameSidePieces.Add(paperPiece.transform);
-                        }
+                        sameSidePieces.Add(collider.transform);
                     }
 
-                    Util.DebugOutputArray<Transform>(sameSidePieces.ToArray());
+                    Util.DebugOutputArray(sameSidePieces.ToArray());
 
                     AddRotatingObject(obj.transform, sameSidePieces, rotatorInUse);
                 }
@@ -334,10 +328,13 @@ public class FoldingController : MonoBehaviour {
         rotator.SetParent(null);
         mainObj.SetParent(rotator);
         rotatingObjects.Add(mainObj);
+        rotator.localScale = new Vector3(1, 1, 1);
+        mainObj.localScale = new Vector3(1, 0.001f, 1);
 
         foreach (Transform obj in additionalObjs)
         {
             obj.SetParent(rotator);
+            obj.localScale = new Vector3(1, 0.001f, 1);
         }
     }
 
@@ -354,6 +351,8 @@ public class FoldingController : MonoBehaviour {
         rotatingObjects.Remove(obj);
         obj.SetParent(paperGroup);
         rotator.SetParent(obj);
+        rotator.localScale = new Vector3(1, 1, 1);
+        obj.localScale = new Vector3(1, 0.001f, 1);
 
         if (rotator.childCount > 0)
         {
@@ -366,6 +365,7 @@ public class FoldingController : MonoBehaviour {
             for (int i = 0; i < children.Count; i++)
             {
                 children[i].SetParent(paperGroup);
+                children[i].localScale = new Vector3(1, 0.001f, 1);
             }
         }
     }

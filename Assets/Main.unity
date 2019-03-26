@@ -2202,8 +2202,7 @@ MonoBehaviour:
     type: 2}
   markerPrefab: {fileID: 1619930419461808, guid: bc50cb4358969c9478c842d4f37dee81,
     type: 2}
-  planePrefab: {fileID: 1762284115228378, guid: 50bf623776f5f6e4085b336b2fa71ded,
-    type: 2}
+  cubePrefab: {fileID: 1330822249907984, guid: d5b1f004989011e43b7e572bdbc46654, type: 2}
   leftHandModel: {fileID: 1978883356}
   leftInteractionHand: {fileID: 15244172}
   rightHandModel: {fileID: 1562694779}
