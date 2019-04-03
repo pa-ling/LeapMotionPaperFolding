@@ -41,7 +41,7 @@ public class FoldingController : MonoBehaviour {
 
     private IEnumerator MakeCuts()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 1; i++)
         {
             Cut();
             this.transform.Rotate(new Vector3(0, 0, 1), 45);
@@ -190,7 +190,7 @@ public class FoldingController : MonoBehaviour {
 
         Vector3 centeredRotatorPos = Util.NearestPointOnLine(hitPoint, cutMarker.transform.right, piece.transform.TransformPoint(piece.GetComponent<Rigidbody>().centerOfMass));
         cutMarker.transform.position = centeredRotatorPos;
-        cutMarker.transform.SetParent(piece.transform);
+        cutMarker.transform.parent = piece.transform;
         cutMarker.name = piece.name + "/" + cutMarker.GetInstanceID().ToString();
         cutMarker.tag = "Cut";
         cutMarker.SetActive(true);
@@ -209,7 +209,7 @@ public class FoldingController : MonoBehaviour {
             GameObject dup = Instantiate(markerPrefab, centeredRotatorPos, child.rotation);
             dup.name = piece.name + "/" + dup.GetInstanceID().ToString();
             dup.tag = "Cut";
-            dup.transform.SetParent(piece.transform);
+            dup.transform.parent = piece.transform;
             dup.SetActive(true);
         }
     }
@@ -325,16 +325,15 @@ public class FoldingController : MonoBehaviour {
         {
             return;
         }
-        rotator.SetParent(null);
-        mainObj.SetParent(rotator);
+        rotator.parent = null;
+        mainObj.parent = rotator;
         rotatingObjects.Add(mainObj);
-        rotator.localScale = new Vector3(1, 1, 1);
-        mainObj.localScale = new Vector3(1, 0.001f, 1);
+        //rotator.localScale = new Vector3(1, 1, 1);
+        //mainObj.localScale = new Vector3(1, 0.001f, 1);
 
         foreach (Transform obj in additionalObjs)
         {
-            obj.SetParent(rotator);
-            obj.localScale = new Vector3(1, 0.001f, 1);
+            obj.parent = rotator;
         }
     }
 
@@ -349,10 +348,10 @@ public class FoldingController : MonoBehaviour {
         Transform paperGroup = GameObject.Find("Paper").transform;
 
         rotatingObjects.Remove(obj);
-        obj.SetParent(paperGroup);
-        rotator.SetParent(obj);
-        rotator.localScale = new Vector3(1, 1, 1);
-        obj.localScale = new Vector3(1, 0.001f, 1);
+        obj.parent = paperGroup;
+        rotator.parent = obj;
+        //rotator.localScale = new Vector3(1, 1, 1);
+        //obj.localScale = new Vector3(1, 0.001f, 1);
 
         if (rotator.childCount > 0)
         {
@@ -364,8 +363,8 @@ public class FoldingController : MonoBehaviour {
 
             for (int i = 0; i < children.Count; i++)
             {
-                children[i].SetParent(paperGroup);
-                children[i].localScale = new Vector3(1, 0.001f, 1);
+                children[i].parent = paperGroup;
+                //children[i].localScale = new Vector3(1, 0.001f, 1);
             }
         }
     }
